@@ -32,9 +32,16 @@
     padding: 20px;
   }
 
-  .container {
-    max-width: 520px;
+  /* Two-column layout */
+  .layout {
+    max-width: 1100px;
     width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .col-left, .col-right {
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -44,6 +51,7 @@
     text-align: center;
     padding: 20px 0 8px;
     position: relative;
+    grid-column: 1 / -1;
   }
   .header h1 {
     font-size: 28px;
@@ -67,49 +75,27 @@
     align-items: center;
   }
   .icon-btn {
-    width: 34px;
-    height: 34px;
-    border: none;
-    background: var(--card);
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 34px; height: 34px; border: none; background: var(--card);
+    border-radius: 10px; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    transition: transform 0.15s;
-    position: relative;
+    transition: transform 0.15s; position: relative;
   }
   .icon-btn:hover { transform: scale(1.1); }
 
   .status-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 6px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; font-size: 12px; color: var(--text-secondary); margin-top: 6px;
   }
-  .status-bar .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-  }
+  .status-bar .dot { width: 6px; height: 6px; border-radius: 50%; }
   .status-bar .dot.file { background: var(--success); }
   .status-bar .dot.browser { background: var(--primary-light); }
 
   .progress-card {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 28px 24px;
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
+    background: var(--card); border-radius: var(--radius);
+    padding: 28px 24px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
   }
-
   .ring-container { position: relative; width: 180px; height: 180px; }
   .ring-svg { transform: rotate(-90deg); }
   .ring-bg { fill: none; stroke: #e3f2fd; stroke-width: 14; }
@@ -120,8 +106,7 @@
   }
   .ring-center {
     position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
+    transform: translate(-50%, -50%); text-align: center;
   }
   .ring-center .amount { font-size: 36px; font-weight: 800; color: var(--primary-dark); }
   .ring-center .unit { font-size: 14px; color: var(--text-secondary); }
@@ -129,8 +114,7 @@
 
   .progress-info {
     display: flex; gap: 24px; width: 100%;
-    justify-content: center;
-    padding-top: 8px;
+    justify-content: center; padding-top: 8px;
     border-top: 1px solid #f0f0f0;
   }
   .progress-info .item { text-align: center; }
@@ -148,21 +132,15 @@
   .quick-add-card h3 .history-btn:hover { opacity: 0.7; }
   .add-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   .add-btn {
-    border: none;
-    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-    color: var(--primary-dark);
-    border-radius: 12px;
-    padding: 14px 8px;
-    font-size: 15px; font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex; flex-direction: column;
-    align-items: center; gap: 4px;
+    border: none; background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: var(--primary-dark); border-radius: 12px;
+    padding: 14px 8px; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
   }
   .add-btn:hover {
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
-    transform: translateY(-2px);
+    color: white; transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
   }
   .add-btn:active { transform: translateY(0); }
@@ -171,11 +149,8 @@
 
   .custom-add { display: flex; gap: 8px; margin-top: 12px; }
   .custom-add input {
-    flex: 1;
-    border: 2px solid #e3f2fd;
-    border-radius: 10px;
-    padding: 10px 14px;
-    font-size: 14px; outline: none;
+    flex: 1; border: 2px solid #e3f2fd; border-radius: 10px;
+    padding: 10px 14px; font-size: 14px; outline: none;
     transition: border-color 0.2s;
   }
   .custom-add input:focus { border-color: var(--primary-light); }
@@ -227,6 +202,26 @@
   }
   .log-empty { text-align: center; color: var(--text-secondary); font-size: 14px; padding: 20px; }
 
+  .goal-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 16px 20px; box-shadow: var(--shadow);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .goal-card .label { font-size: 14px; color: var(--text-secondary); }
+  .goal-card .goal-control { display: flex; align-items: center; gap: 8px; }
+  .goal-card button {
+    width: 30px; height: 30px; border: none; background: #e3f2fd;
+    color: var(--primary-dark); border-radius: 8px; font-size: 18px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .goal-card button:hover { background: #bbdefb; }
+  .goal-card .goal-value {
+    font-size: 18px; font-weight: 700; color: var(--primary-dark);
+    min-width: 60px; text-align: center;
+  }
+
+  /* Chart card (right column) */
   .chart-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
   .chart-card h3 {
     font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; font-weight: 500;
@@ -260,24 +255,90 @@
   .bar-label { font-size: 11px; color: var(--text-secondary); }
   .bar-amount { font-size: 10px; color: var(--text-secondary); margin-bottom: 2px; }
 
-  .goal-card {
-    background: var(--card); border-radius: var(--radius);
-    padding: 16px 20px; box-shadow: var(--shadow);
+  /* Calendar card (right column) */
+  .cal-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .cal-header {
     display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
   }
-  .goal-card .label { font-size: 14px; color: var(--text-secondary); }
-  .goal-card .goal-control { display: flex; align-items: center; gap: 8px; }
-  .goal-card button {
+  .cal-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .cal-nav { display: flex; gap: 8px; align-items: center; }
+  .cal-nav button {
     width: 30px; height: 30px; border: none; background: #e3f2fd;
-    color: var(--primary-dark); border-radius: 8px; font-size: 18px;
+    color: var(--primary-dark); border-radius: 8px; font-size: 16px;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     transition: background 0.2s;
   }
-  .goal-card button:hover { background: #bbdefb; }
-  .goal-card .goal-value {
-    font-size: 18px; font-weight: 700; color: var(--primary-dark);
-    min-width: 60px; text-align: center;
+  .cal-nav button:hover { background: #bbdefb; }
+  .cal-nav .cal-today-btn {
+    width: auto; padding: 0 12px; font-size: 12px; font-weight: 600;
   }
+
+  .cal-stats {
+    display: flex; gap: 16px; margin-bottom: 14px;
+    padding: 10px 14px; background: #f5faff; border-radius: 10px;
+  }
+  .cal-stat { text-align: center; flex: 1; }
+  .cal-stat .cs-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+  .cal-stat .cs-value { font-size: 16px; font-weight: 700; color: var(--primary-dark); }
+  .cal-stat .cs-value.complete { color: var(--success); }
+
+  .cal-weekdays {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    margin-bottom: 6px;
+  }
+  .cal-weekday {
+    text-align: center; font-size: 12px; color: var(--text-secondary);
+    padding: 4px 0; font-weight: 500;
+  }
+
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+  }
+  .cal-day {
+    aspect-ratio: 1; border-radius: 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 13px; color: var(--text);
+    transition: all 0.2s; cursor: default;
+    position: relative; min-height: 44px;
+  }
+  .cal-day.empty { background: transparent; cursor: default; }
+  .cal-day.has-data {
+    background: linear-gradient(135deg, #bbdefb, #e3f2fd);
+    color: var(--primary-dark); font-weight: 600;
+  }
+  .cal-day.has-data.good {
+    background: linear-gradient(135deg, #81C784, #c8e6c9);
+    color: #2e7d32;
+  }
+  .cal-day.has-data.great {
+    background: linear-gradient(135deg, var(--success), #81C784);
+    color: white;
+  }
+  .cal-day.today {
+    border: 2px solid var(--accent);
+  }
+  .cal-day.future { opacity: 0.35; }
+  .cal-day .cd-num { font-size: 13px; line-height: 1; }
+  .cal-day .cd-amount { font-size: 10px; margin-top: 2px; opacity: 0.9; }
+  .cal-day:hover:not(.empty) { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+
+  .cal-legend {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    margin-top: 14px; flex-wrap: wrap;
+  }
+  .cal-legend-item {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--text-secondary);
+  }
+  .cal-legend-box {
+    width: 14px; height: 14px; border-radius: 4px;
+  }
+  .cal-legend-box.l-none { background: #f0f0f0; }
+  .cal-legend-box.l-some { background: linear-gradient(135deg, #bbdefb, #e3f2fd); }
+  .cal-legend-box.l-good { background: linear-gradient(135deg, #81C784, #c8e6c9); }
+  .cal-legend-box.l-great { background: linear-gradient(135deg, var(--success), #81C784); }
 
   .toast {
     position: fixed; bottom: 30px; left: 50%;
@@ -430,8 +491,12 @@
   }
   .hm-pagination .total-info { font-size: 12px; color: var(--text-secondary); }
 
-  .footer { text-align: center; padding: 8px 0 4px; font-size: 12px; color: var(--text-secondary); }
+  .footer { text-align: center; padding: 8px 0 4px; font-size: 12px; color: var(--text-secondary); grid-column: 1 / -1; }
 
+  /* Responsive: single column on narrow screens */
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+  }
   @media (max-width: 480px) {
     .add-buttons { grid-template-columns: repeat(2, 1fr); }
     .ring-center .amount { font-size: 30px; }
@@ -445,13 +510,11 @@
 </head>
 <body>
 
-<!-- Auto-load data file from same folder.
-     Uses .js extension (not .json) because browsers block <script> execution
-     for files with application/json MIME type. The file contains valid JS:
-     window.__WATER_DATA__ = { ... }; -->
+<!-- Auto-load data file from same folder. -->
 <script src="water-data.js" onerror="window.__WATER_DATA__=null"></script>
 
-<div class="container">
+<div class="layout">
+  <!-- ===== Header (spans both columns) ===== -->
   <div class="header">
     <h1>💧 喝了么</h1>
     <p id="dateText"></p>
@@ -463,91 +526,125 @@
     </div>
   </div>
 
-  <div class="progress-card">
-    <div class="ring-container">
-      <svg class="ring-svg" width="180" height="180" viewBox="0 0 180 180">
-        <defs>
-          <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#2196F3" />
-            <stop offset="100%" stop-color="#00BCD4" />
-          </linearGradient>
-        </defs>
-        <circle class="ring-bg" cx="90" cy="90" r="76" />
-        <circle class="ring-fill" id="ringFill" cx="90" cy="90" r="76"
-                stroke-dasharray="477.5" stroke-dashoffset="477.5" />
-      </svg>
-      <div class="ring-center">
-        <div class="amount" id="todayAmount">0</div>
-        <div class="unit">ml</div>
-        <div class="goal-text" id="goalText">目标 2000ml</div>
+  <!-- ===== Left column ===== -->
+  <div class="col-left">
+    <div class="progress-card">
+      <div class="ring-container">
+        <svg class="ring-svg" width="180" height="180" viewBox="0 0 180 180">
+          <defs>
+            <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2196F3" />
+              <stop offset="100%" stop-color="#00BCD4" />
+            </linearGradient>
+          </defs>
+          <circle class="ring-bg" cx="90" cy="90" r="76" />
+          <circle class="ring-fill" id="ringFill" cx="90" cy="90" r="76"
+                  stroke-dasharray="477.5" stroke-dashoffset="477.5" />
+        </svg>
+        <div class="ring-center">
+          <div class="amount" id="todayAmount">0</div>
+          <div class="unit">ml</div>
+          <div class="goal-text" id="goalText">目标 2000ml</div>
+        </div>
+      </div>
+      <div class="progress-info">
+        <div class="item">
+          <div class="label">完成度</div>
+          <div class="value" id="percentText">0%</div>
+        </div>
+        <div class="item">
+          <div class="label">还需</div>
+          <div class="value" id="remainingText">2000ml</div>
+        </div>
+        <div class="item">
+          <div class="label">记录次数</div>
+          <div class="value" id="countText">0</div>
+        </div>
       </div>
     </div>
-    <div class="progress-info">
-      <div class="item">
-        <div class="label">完成度</div>
-        <div class="value" id="percentText">0%</div>
+
+    <div class="quick-add-card">
+      <h3>
+        <span>🚰 快速记录</span>
+        <button class="history-btn" onclick="openBackfill()">📅 补录历史</button>
+      </h3>
+      <div class="add-buttons">
+        <button class="add-btn" onclick="addWater(150)">
+          <span class="icon">🥛</span><span>小杯</span><span class="ml">150ml</span>
+        </button>
+        <button class="add-btn" onclick="addWater(250)">
+          <span class="icon">☕</span><span>标准杯</span><span class="ml">250ml</span>
+        </button>
+        <button class="add-btn" onclick="addWater(400)">
+          <span class="icon">🍵</span><span>大杯</span><span class="ml">400ml</span>
+        </button>
+        <button class="add-btn" onclick="addWater(500)">
+          <span class="icon">🥤</span><span>水瓶</span><span class="ml">500ml</span>
+        </button>
       </div>
-      <div class="item">
-        <div class="label">还需</div>
-        <div class="value" id="remainingText">2000ml</div>
+      <div class="custom-add">
+        <input type="number" id="customAmount" placeholder="自定义 ml 数量" min="1" max="5000">
+        <button onclick="addCustom()">添加</button>
       </div>
-      <div class="item">
-        <div class="label">记录次数</div>
-        <div class="value" id="countText">0</div>
+    </div>
+
+    <div class="log-card">
+      <h3>
+        <span>📋 今日记录</span>
+        <button class="clear-btn" onclick="confirmClear()">清空今日</button>
+      </h3>
+      <div class="log-list" id="logList">
+        <div class="log-empty">还没有记录，点击上方按钮开始 💧</div>
       </div>
     </div>
   </div>
 
-  <div class="quick-add-card">
-    <h3>
-      <span>🚰 快速记录</span>
-      <button class="history-btn" onclick="openBackfill()">📅 补录历史</button>
-    </h3>
-    <div class="add-buttons">
-      <button class="add-btn" onclick="addWater(150)">
-        <span class="icon">🥛</span><span>小杯</span><span class="ml">150ml</span>
-      </button>
-      <button class="add-btn" onclick="addWater(250)">
-        <span class="icon">☕</span><span>标准杯</span><span class="ml">250ml</span>
-      </button>
-      <button class="add-btn" onclick="addWater(400)">
-        <span class="icon">🍵</span><span>大杯</span><span class="ml">400ml</span>
-      </button>
-      <button class="add-btn" onclick="addWater(500)">
-        <span class="icon">🥤</span><span>水瓶</span><span class="ml">500ml</span>
-      </button>
+  <!-- ===== Right column ===== -->
+  <div class="col-right">
+    <div class="goal-card">
+      <span class="label">🎯 每日目标</span>
+      <div class="goal-control">
+        <button onclick="changeGoal(-100)">−</button>
+        <span class="goal-value" id="goalValue">2000ml</span>
+        <button onclick="changeGoal(100)">+</button>
+      </div>
     </div>
-    <div class="custom-add">
-      <input type="number" id="customAmount" placeholder="自定义 ml 数量" min="1" max="5000">
-      <button onclick="addCustom()">添加</button>
-    </div>
-  </div>
 
-  <div class="goal-card">
-    <span class="label">🎯 每日目标</span>
-    <div class="goal-control">
-      <button onclick="changeGoal(-100)">−</button>
-      <span class="goal-value" id="goalValue">2000ml</span>
-      <button onclick="changeGoal(100)">+</button>
+    <div class="chart-card">
+      <h3>
+        <span>📊 近 7 天趋势</span>
+        <button class="history-btn" onclick="showHistory()">📜 查看全部历史</button>
+      </h3>
+      <div class="chart" id="chart"></div>
     </div>
-  </div>
 
-  <div class="log-card">
-    <h3>
-      <span>📋 今日记录</span>
-      <button class="clear-btn" onclick="confirmClear()">清空今日</button>
-    </h3>
-    <div class="log-list" id="logList">
-      <div class="log-empty">还没有记录，点击上方按钮开始 💧</div>
+    <div class="cal-card">
+      <div class="cal-header">
+        <span class="cal-title" id="calTitle">2026年8月</span>
+        <div class="cal-nav">
+          <button onclick="calChangeMonth(-1)" title="上个月">‹</button>
+          <button class="cal-today-btn" onclick="calGoToday()">今月</button>
+          <button onclick="calChangeMonth(1)" title="下个月">›</button>
+        </div>
+      </div>
+      <div class="cal-stats" id="calStats"></div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">日</div>
+        <div class="cal-weekday">一</div>
+        <div class="cal-weekday">二</div>
+        <div class="cal-weekday">三</div>
+        <div class="cal-weekday">四</div>
+        <div class="cal-weekday">五</div>
+        <div class="cal-weekday">六</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><span class="cal-legend-box l-none"></span>无记录</div>
+        <div class="cal-legend-item"><span class="cal-legend-box l-some"></span>有记录</div>
+        <div class="cal-legend-item"><span class="cal-legend-box l-good"></span>过半</div>
+        <div class="cal-legend-item"><span class="cal-legend-box l-great"></span>达标</div>
+      </div>
     </div>
-  </div>
-
-  <div class="chart-card">
-    <h3>
-      <span>📊 近 7 天趋势</span>
-      <button class="history-btn" onclick="showHistory()">📜 查看全部历史</button>
-    </h3>
-    <div class="chart" id="chart"></div>
   </div>
 
   <div class="footer">💧 喝水追踪器 · 双击打开即用 · 数据自动保存</div>
@@ -638,7 +735,6 @@
   // ---- Data layer ----
 
   function loadData() {
-    // 1. localStorage first — has the most recent data (auto-saved on every change)
     try {
       var stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -646,25 +742,21 @@
         if (parsed && typeof parsed === 'object') return parsed;
       }
     } catch(e) {}
-    // 2. Fall back to file data (first visit, or after clearing browser data)
     if (window.__WATER_DATA__ && typeof window.__WATER_DATA__ === 'object') {
       var fileData = window.__WATER_DATA__;
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(fileData)); } catch(e) {}
       return fileData;
     }
-    // 3. Nothing available
     return {};
   }
 
   function saveData(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    // Also update in-memory copy so subsequent reads are consistent
     window.__WATER_DATA__ = data;
   }
 
   function getGoal() {
-    var data = loadData();
-    return data._goal || DEFAULT_GOAL;
+    return loadData()._goal || DEFAULT_GOAL;
   }
 
   // ---- Date helpers ----
@@ -683,12 +775,13 @@
     d.setDate(d.getDate() + offset);
     return ['日','一','二','三','四','五','六'][d.getDay()];
   }
-  function formatDateDisplay(dateStr) {
-    var parts = dateStr.split('-');
+  function formatDateDisplay(ds) {
+    var parts = ds.split('-');
     var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
     var weekdays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
     return parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日 ' + weekdays[d.getDay()];
   }
+  function pad2(n) { return String(n).padStart(2, '0'); }
 
   function getTodayLog() {
     return loadData()[todayStr()] || [];
@@ -705,7 +798,7 @@
     var today = todayStr();
     if (!data[today]) data[today] = [];
     var now = new Date();
-    var time = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    var time = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
     data[today].push({ time: time, amount: amount, id: Date.now() });
     saveData(data);
     showToast('+' + amount + 'ml 💧 已记录！');
@@ -736,7 +829,6 @@
   function startEdit(id) {
     editingId = id;
     renderLog();
-    // Focus the input
     var input = document.getElementById('editInput_' + id);
     if (input) { input.focus(); input.select(); }
   }
@@ -745,10 +837,7 @@
     var input = document.getElementById('editInput_' + id);
     if (!input) return;
     var val = parseInt(input.value);
-    if (!val || val <= 0 || val > 5000) {
-      showToast('请输入 1-5000 之间的数字');
-      return;
-    }
+    if (!val || val <= 0 || val > 5000) { showToast('请输入 1-5000 之间的数字'); return; }
     var data = loadData();
     var today = todayStr();
     var rec = (data[today] || []).find(function(r) { return r.id === id; });
@@ -761,10 +850,7 @@
     renderAll();
   }
 
-  function cancelEdit() {
-    editingId = null;
-    renderLog();
-  }
+  function cancelEdit() { editingId = null; renderLog(); }
 
   function handleEditKeydown(e, id) {
     if (e.key === 'Enter') { e.preventDefault(); saveEdit(id); }
@@ -799,23 +885,20 @@
     return 'window.__WATER_DATA__ = ' + JSON.stringify(data, null, 2) + ';\n';
   }
 
-  // Export: download current data as water-data.js
-  function exportData() {
-    var data = loadData();
-    var content = generateFileContent(data);
-    var blob = new Blob([content], { type: 'application/javascript' });
+  function downloadFile(content, filename, mime) {
+    var blob = new Blob([content], { type: mime });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
-    a.href = url;
-    a.download = 'water-data.js';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  }
+
+  function exportData() {
+    downloadFile(generateFileContent(loadData()), 'water-data.js', 'application/javascript');
     showToast('已导出 water-data.js 📤');
   }
 
-  // Import: read file → load data → auto-overwrite water-data.js
   function importData(event) {
     var file = event.target.files[0];
     if (!file) return;
@@ -824,12 +907,8 @@
       var text = e.target.result;
       var data = null;
       var match = text.match(/window\.\s*__WATER_DATA__\s*=\s*([\s\S]+?);?\s*$/);
-      if (match) {
-        try { data = JSON.parse(match[1]); } catch(err) {}
-      }
-      if (!data) {
-        try { data = JSON.parse(text); } catch(err) {}
-      }
+      if (match) { try { data = JSON.parse(match[1]); } catch(err) {} }
+      if (!data) { try { data = JSON.parse(text); } catch(err) {} }
       if (!data || typeof data !== 'object') {
         showToast('导入失败：文件格式错误');
         event.target.value = '';
@@ -837,28 +916,17 @@
       }
       saveData(data);
       renderAll();
-      // Auto-overwrite water-data.js
-      var content = generateFileContent(data);
-      var blob = new Blob([content], { type: 'application/javascript' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = 'water-data.js';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      downloadFile(generateFileContent(data), 'water-data.js', 'application/javascript');
       showToast('数据导入成功，已自动覆盖 water-data.js ✅');
       event.target.value = '';
     };
     reader.readAsText(file);
   }
 
-  // ---- Backfill (add records to historical dates) ----
+  // ---- Backfill ----
 
   function openBackfill() {
-    var y = dateStr(-1);
-    document.getElementById('backfillDate').value = y;
+    document.getElementById('backfillDate').value = dateStr(-1);
     document.getElementById('backfillDate').max = todayStr();
     document.getElementById('backfillTime').value = '12:00';
     document.getElementById('backfillAmount').value = '';
@@ -875,25 +943,15 @@
     document.getElementById('backfillOverlay').classList.add('show');
   }
 
-  function closeBackfill() {
-    document.getElementById('backfillOverlay').classList.remove('show');
-  }
+  function closeBackfill() { document.getElementById('backfillOverlay').classList.remove('show'); }
 
-  function getBackfillDate() {
-    return document.getElementById('backfillDate').value || todayStr();
-  }
-
-  function getBackfillTime() {
-    return document.getElementById('backfillTime').value || '12:00';
-  }
+  function getBackfillDate() { return document.getElementById('backfillDate').value || todayStr(); }
+  function getBackfillTime() { return document.getElementById('backfillTime').value || '12:00'; }
 
   function backfillAdd(amount) {
     var date = getBackfillDate();
     var time = getBackfillTime();
-    if (date > todayStr()) {
-      showToast('不能选择未来的日期');
-      return;
-    }
+    if (date > todayStr()) { showToast('不能选择未来的日期'); return; }
     var data = loadData();
     if (!data[date]) data[date] = [];
     data[date].push({ time: time, amount: amount, id: Date.now() });
@@ -901,19 +959,13 @@
     showToast('已补录 ' + amount + 'ml 到 ' + formatDateDisplay(date));
     updateBackfillPreview();
     renderAll();
-    // Refresh history modal if it's open
-    if (document.getElementById('historyOverlay').classList.contains('show')) {
-      renderHistory();
-    }
+    if (document.getElementById('historyOverlay').classList.contains('show')) renderHistory();
   }
 
   function backfillCustom() {
     var input = document.getElementById('backfillAmount');
     var val = parseInt(input.value);
-    if (!val || val <= 0 || val > 5000) {
-      showToast('请输入 1-5000 之间的数字');
-      return;
-    }
+    if (!val || val <= 0 || val > 5000) { showToast('请输入 1-5000 之间的数字'); return; }
     input.value = '';
     backfillAdd(val);
   }
@@ -923,10 +975,7 @@
     var preview = document.getElementById('backfillPreview');
     var data = loadData();
     var records = data[date] || [];
-    if (records.length === 0) {
-      preview.style.display = 'none';
-      return;
-    }
+    if (records.length === 0) { preview.style.display = 'none'; return; }
     var total = records.reduce(function(s, r) { return s + r.amount; }, 0);
     var goal = data._goal || DEFAULT_GOAL;
     var isComplete = total >= goal;
@@ -946,12 +995,8 @@
   // ---- History modal ----
 
   var historyState = {
-    page: 1,
-    pageSize: 10,
-    filter: 'month',       // week | month | quarter | all | custom
-    dateFrom: '',
-    dateTo: '',
-    expandedDays: {}       // { "2026-08-10": true, ... }
+    page: 1, pageSize: 10, filter: 'month',
+    dateFrom: '', dateTo: '', expandedDays: {}
   };
 
   function getFilteredDates() {
@@ -959,22 +1004,15 @@
     var dates = Object.keys(data).filter(function(k) {
       return k !== '_goal' && /^\d{4}-\d{2}-\d{2}$/.test(k);
     });
-
-    // Compute date range
     var from = null, to = null;
     var now = new Date();
-    if (historyState.filter === 'week') {
-      from = new Date(now); from.setDate(from.getDate() - 6);
-    } else if (historyState.filter === 'month') {
-      from = new Date(now); from.setDate(from.getDate() - 29);
-    } else if (historyState.filter === 'quarter') {
-      from = new Date(now); from.setDate(from.getDate() - 89);
-    } else if (historyState.filter === 'custom') {
+    if (historyState.filter === 'week') { from = new Date(now); from.setDate(from.getDate() - 6); }
+    else if (historyState.filter === 'month') { from = new Date(now); from.setDate(from.getDate() - 29); }
+    else if (historyState.filter === 'quarter') { from = new Date(now); from.setDate(from.getDate() - 89); }
+    else if (historyState.filter === 'custom') {
       if (historyState.dateFrom) from = new Date(historyState.dateFrom + 'T00:00:00');
       if (historyState.dateTo) to = new Date(historyState.dateTo + 'T23:59:59');
     }
-    // 'all' → no filter
-
     if (from || to) {
       dates = dates.filter(function(d) {
         var dt = new Date(d + 'T00:00:00');
@@ -983,7 +1021,6 @@
         return true;
       });
     }
-
     dates.sort(function(a, b) { return b.localeCompare(a); });
     return dates;
   }
@@ -991,40 +1028,27 @@
   function showHistory() {
     historyState.page = 1;
     historyState.expandedDays = {};
-    // Default to last month
     historyState.filter = 'month';
-    // Set default custom range dates
     var now = new Date();
     var monthAgo = new Date(now); monthAgo.setDate(monthAgo.getDate() - 29);
-    historyState.dateFrom = monthAgo.getFullYear() + '-' + String(monthAgo.getMonth()+1).padStart(2,'0') + '-' + String(monthAgo.getDate()).padStart(2,'0');
-    historyState.dateTo = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-
-    // Update filter button states
+    historyState.dateFrom = monthAgo.getFullYear() + '-' + pad2(monthAgo.getMonth()+1) + '-' + pad2(monthAgo.getDate());
+    historyState.dateTo = now.getFullYear() + '-' + pad2(now.getMonth()+1) + '-' + pad2(now.getDate());
     updateFilterButtons();
-    // Update date range inputs
     document.getElementById('dateFrom').value = historyState.dateFrom;
     document.getElementById('dateTo').value = historyState.dateTo;
-    // Hide custom range bar (only show when 'custom' is selected)
     document.getElementById('dateRangeBar').classList.remove('show');
-
     renderHistory();
     document.getElementById('historyOverlay').classList.add('show');
   }
 
-  function closeHistory() {
-    document.getElementById('historyOverlay').classList.remove('show');
-  }
+  function closeHistory() { document.getElementById('historyOverlay').classList.remove('show'); }
 
   function setHistoryFilter(filter) {
     historyState.filter = filter;
     historyState.page = 1;
     historyState.expandedDays = {};
     updateFilterButtons();
-    if (filter === 'custom') {
-      document.getElementById('dateRangeBar').classList.add('show');
-    } else {
-      document.getElementById('dateRangeBar').classList.remove('show');
-    }
+    document.getElementById('dateRangeBar').classList.toggle('show', filter === 'custom');
     renderHistory();
   }
 
@@ -1084,11 +1108,8 @@
     var allDates = getFilteredDates();
     var totalDays = allDates.length;
     var totalPages = Math.max(1, Math.ceil(totalDays / historyState.pageSize));
-
-    // Clamp page
     if (historyState.page > totalPages) historyState.page = totalPages;
     if (historyState.page < 1) historyState.page = 1;
-
     var startIdx = (historyState.page - 1) * historyState.pageSize;
     var pageDates = allDates.slice(startIdx, startIdx + historyState.pageSize);
 
@@ -1112,7 +1133,6 @@
         '</div>';
       }).join('');
 
-      // Add backfill button at the end of expanded records
       recordsHtml += '<div style="text-align: center; padding: 8px 0 2px;">' +
         '<button class="hm-filter-btn" onclick="openBackfillForDate(\'' + date + '\')" style="color: var(--primary); border-color: var(--primary-light);">＋ 为这天补录</button>' +
       '</div>';
@@ -1132,7 +1152,6 @@
       '</div>';
     }).join('');
 
-    // Pagination bar
     pagBar.innerHTML =
       '<span class="total-info">共 ' + totalDays + ' 天</span>' +
       '<button onclick="changeHistoryPage(-1)" ' + (historyState.page <= 1 ? 'disabled' : '') + '>\u2039 上一页</button>' +
@@ -1143,6 +1162,96 @@
         '<option value="20"' + (historyState.pageSize === 20 ? ' selected' : '') + '>20条/页</option>' +
         '<option value="50"' + (historyState.pageSize === 50 ? ' selected' : '') + '>50条/页</option>' +
       '</select>';
+  }
+
+  // ---- Calendar ----
+
+  var calYear, calMonth; // 0-indexed month
+
+  function calInit() {
+    var now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+  }
+
+  function calChangeMonth(delta) {
+    calMonth += delta;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  }
+
+  function calGoToday() {
+    var now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    var data = loadData();
+    var goal = data._goal || DEFAULT_GOAL;
+    var today = todayStr();
+
+    // Title
+    document.getElementById('calTitle').textContent = calYear + '年' + (calMonth + 1) + '月';
+
+    // Build grid
+    var firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+    var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+    var grid = document.getElementById('calGrid');
+    var html = '';
+
+    // Empty cells before day 1
+    for (var i = 0; i < firstDay; i++) {
+      html += '<div class="cal-day empty"></div>';
+    }
+
+    // Stats accumulators
+    var totalMonth = 0;
+    var recordDays = 0;
+    var goalDays = 0;
+
+    // Day cells
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateKey = calYear + '-' + pad2(calMonth + 1) + '-' + pad2(d);
+      var total = getDayTotal(dateKey);
+      var hasData = total > 0;
+      var isFuture = dateKey > today;
+      var isToday = dateKey === today;
+
+      if (hasData) {
+        recordDays++;
+        totalMonth += total;
+        if (total >= goal) goalDays++;
+      }
+
+      var cls = 'cal-day';
+      if (hasData) {
+        cls += ' has-data';
+        if (total >= goal) cls += ' great';
+        else if (total >= goal * 0.5) cls += ' good';
+      }
+      if (isToday) cls += ' today';
+      if (isFuture) cls += ' future';
+
+      html += '<div class="' + cls + '"' + (!isFuture ? ' onclick="openBackfillForDate(\'' + dateKey + '\')" style="cursor:pointer;"' : '') + '>' +
+        '<div class="cd-num">' + d + '</div>' +
+        (hasData ? '<div class="cd-amount">' + total + 'ml</div>' : '') +
+      '</div>';
+    }
+
+    grid.innerHTML = html;
+
+    // Stats bar
+    var stats = document.getElementById('calStats');
+    var avgPerDay = recordDays > 0 ? Math.round(totalMonth / recordDays) : 0;
+    stats.innerHTML =
+      '<div class="cal-stat"><div class="cs-label">本月合计</div><div class="cs-value">' + totalMonth + 'ml</div></div>' +
+      '<div class="cal-stat"><div class="cs-label">记录天数</div><div class="cs-value">' + recordDays + '天</div></div>' +
+      '<div class="cal-stat"><div class="cs-label">日均饮水</div><div class="cs-value">' + avgPerDay + 'ml</div></div>' +
+      '<div class="cal-stat"><div class="cs-label">达标天数</div><div class="cs-value' + (goalDays > 0 ? ' complete' : '') + '">' + goalDays + '天</div></div>';
   }
 
   // ---- Render ----
@@ -1183,9 +1292,7 @@
     var offset = RING_CIRCUMFERENCE * (1 - Math.min(1, total / goal));
     document.getElementById('ringFill').style.strokeDashoffset = offset;
 
-    if (percent >= 100) {
-      showToast('🎉 太棒了！今日喝水目标已完成！');
-    }
+    if (percent >= 100) showToast('🎉 太棒了！今日喝水目标已完成！');
   }
 
   function renderLog() {
@@ -1198,8 +1305,6 @@
     var cupIcons = { 150: '🥛', 250: '☕', 400: '🍵', 500: '🥤' };
     list.innerHTML = log.slice().reverse().map(function(r) {
       var icon = cupIcons[r.amount] || '💧';
-
-      // If this record is being edited, show inline edit UI
       if (editingId === r.id) {
         return '<div class="log-item">' +
           '<div class="left"><span class="cup-icon">' + icon + '</span><span class="time">' + r.time + '</span></div>' +
@@ -1211,7 +1316,6 @@
           '</div>' +
         '</div>';
       }
-
       return '<div class="log-item">' +
         '<div class="left"><span class="cup-icon">' + icon + '</span><span class="time">' + r.time + '</span></div>' +
         '<div class="actions">' +
@@ -1255,6 +1359,7 @@
     renderProgress();
     renderLog();
     renderChart();
+    renderCalendar();
   }
 
   // ---- Event listeners ----
@@ -1275,6 +1380,7 @@
   });
 
   // ---- Init ----
+  calInit();
   renderAll();
 </script>
 
