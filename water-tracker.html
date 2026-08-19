@@ -491,6 +491,215 @@
   }
   .hm-pagination .total-info { font-size: 12px; color: var(--text-secondary); }
 
+  /* Login overlay */
+  .login-overlay {
+    position: fixed; inset: 0; background: linear-gradient(135deg, #e3f2fd 0%, #f0f6ff 50%, #e8f5e9 100%);
+    display: flex; align-items: center; justify-content: center; z-index: 5000;
+  }
+  .login-overlay.hidden { display: none; }
+  .login-box {
+    background: var(--card); border-radius: 24px; padding: 40px 36px;
+    max-width: 380px; width: 90%; box-shadow: 0 12px 48px rgba(33, 150, 243, 0.2);
+    text-align: center;
+  }
+  .login-box .login-icon { font-size: 48px; margin-bottom: 12px; }
+  .login-box h2 {
+    font-size: 24px; font-weight: 700; margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .login-box .login-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
+  .login-box input {
+    width: 100%; border: 2px solid #e3f2fd; border-radius: 12px;
+    padding: 14px 16px; font-size: 16px; outline: none; text-align: center;
+    transition: border-color 0.2s; margin-bottom: 12px;
+  }
+  .login-box input:focus { border-color: var(--primary); }
+  .login-box .login-btn {
+    width: 100%; border: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 600;
+    cursor: pointer; transition: transform 0.15s;
+  }
+  .login-box .login-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(33,150,243,0.3); }
+  .login-box .login-hint { font-size: 12px; color: var(--text-secondary); margin-top: 16px; }
+  .login-box .login-error { color: var(--danger); font-size: 13px; margin-top: 8px; display: none; }
+
+  /* User badge */
+  .user-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: #e3f2fd; border-radius: 10px; padding: 4px 10px 4px 8px;
+    font-size: 13px; color: var(--primary-dark); font-weight: 600;
+  }
+  .user-badge .avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+  .logout-btn {
+    border: none; background: none; color: var(--text-secondary);
+    font-size: 18px; cursor: pointer; padding: 2px 4px; transition: color 0.2s;
+  }
+  .logout-btn:hover { color: var(--danger); }
+
+  /* Admin link on login page */
+  .admin-link {
+    display: block; margin-top: 14px; font-size: 13px; color: var(--text-secondary);
+    cursor: pointer; transition: color 0.2s; background: none; border: none;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .admin-link:hover { color: var(--primary); }
+
+  /* Admin password overlay */
+  .admin-pw-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    display: none; align-items: center; justify-content: center; z-index: 5500;
+    padding: 20px;
+  }
+  .admin-pw-overlay.show { display: flex; }
+  .admin-pw-box {
+    background: var(--card); border-radius: 24px; padding: 36px 32px;
+    max-width: 360px; width: 90%; box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+    text-align: center;
+  }
+  .admin-pw-box .icon { font-size: 40px; margin-bottom: 10px; }
+  .admin-pw-box h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .admin-pw-box .sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+  .admin-pw-box input {
+    width: 100%; border: 2px solid #e3f2fd; border-radius: 12px;
+    padding: 12px 16px; font-size: 15px; outline: none; text-align: center;
+    transition: border-color 0.2s; margin-bottom: 12px;
+  }
+  .admin-pw-box input:focus { border-color: var(--primary); }
+  .admin-pw-box .pw-btn {
+    width: 100%; border: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white; border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: transform 0.15s;
+  }
+  .admin-pw-box .pw-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(33,150,243,0.3); }
+  .admin-pw-box .pw-back {
+    margin-top: 12px; font-size: 13px; color: var(--text-secondary);
+    cursor: pointer; background: none; border: none; transition: color 0.2s;
+  }
+  .admin-pw-box .pw-back:hover { color: var(--primary); }
+  .admin-pw-box .pw-error { color: var(--danger); font-size: 13px; margin-top: 8px; display: none; }
+
+  /* Admin panel overlay */
+  .admin-overlay {
+    position: fixed; inset: 0; background: linear-gradient(135deg, #e3f2fd 0%, #f0f6ff 50%, #e8f5e9 100%);
+    display: none; z-index: 5000; overflow-y: auto; padding: 20px;
+    justify-content: center;
+  }
+  .admin-overlay.show { display: flex; }
+  .admin-container {
+    max-width: 800px; width: 100%; margin: 0 auto;
+  }
+  .admin-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 0 16px; flex-wrap: wrap; gap: 10px;
+  }
+  .admin-header h1 {
+    font-size: 24px; font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .admin-header .admin-actions { display: flex; gap: 8px; align-items: center; }
+  .admin-header .admin-back-btn {
+    border: none; background: var(--card); color: var(--text-secondary);
+    border-radius: 10px; padding: 8px 16px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .admin-header .admin-back-btn:hover { color: var(--primary); background: #e3f2fd; }
+
+  .admin-summary {
+    display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .admin-summary .stat-card {
+    background: var(--card); border-radius: 14px; padding: 14px 20px;
+    box-shadow: var(--shadow); flex: 1; min-width: 120px; text-align: center;
+  }
+  .admin-summary .stat-card .sl { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .admin-summary .stat-card .sv { font-size: 22px; font-weight: 800; color: var(--primary-dark); }
+  .admin-summary .stat-card .sv.complete { color: var(--success); }
+
+  .admin-user-table {
+    background: var(--card); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow-x: auto;
+  }
+  .admin-table-header {
+    display: grid; grid-template-columns: 44px 1fr 70px 70px 80px 70px 110px 110px 50px;
+    min-width: 790px;
+    padding: 14px 20px; background: #f0f6ff; font-size: 13px; font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .admin-user-row {
+    display: grid; grid-template-columns: 44px 1fr 70px 70px 80px 70px 110px 110px 50px;
+    min-width: 790px;
+    padding: 14px 20px; border-top: 1px solid #f0f0f0;
+    align-items: center; transition: background 0.2s;
+  }
+  .admin-user-row .au-delete-btn {
+    border: none; background: none; color: #ccc; font-size: 18px;
+    cursor: pointer; padding: 4px; transition: color 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .admin-user-row .au-delete-btn:hover { color: var(--danger); }
+  .admin-user-row:hover { background: #f5faff; }
+  .admin-user-row .au-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+  }
+  .admin-user-row .au-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .admin-user-row .au-days, .admin-user-row .au-records, .admin-user-row .au-total, .admin-user-row .au-goal,
+  .admin-user-row .au-first-login, .admin-user-row .au-last-active {
+    font-size: 13px; color: var(--text-secondary); text-align: center;
+  }
+  .admin-user-row .au-total { font-weight: 700; color: var(--primary-dark); }
+  .admin-user-row .au-first-login, .admin-user-row .au-last-active { font-size: 12px; }
+
+  /* Admin DAU chart */
+  .admin-chart-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow); margin-bottom: 16px;
+  }
+  .admin-chart-card h3 {
+    font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; font-weight: 500;
+  }
+  .admin-chart {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    height: 120px; gap: 8px; padding-bottom: 24px; position: relative;
+  }
+  .admin-chart::after {
+    content: ''; position: absolute; bottom: 24px; left: 0; right: 0;
+    height: 1px; background: #eee;
+  }
+  .admin-bar-group {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 6px; height: 100%; justify-content: flex-end;
+  }
+  .admin-bar {
+    width: 60%; max-width: 36px; border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, var(--primary-light), var(--primary));
+    transition: height 0.5s ease; min-height: 3px;
+  }
+  .admin-bar.today { background: linear-gradient(180deg, var(--accent), var(--primary-dark)); }
+  .admin-bar-label { font-size: 11px; color: var(--text-secondary); }
+  .admin-bar-amount { font-size: 10px; color: var(--text-secondary); margin-bottom: 2px; }
+
+  .admin-empty { text-align: center; padding: 40px; font-size: 14px; color: var(--text-secondary); }
+
+  @media (max-width: 760px) {
+    .admin-table-header, .admin-user-row {
+      grid-template-columns: 36px 1fr 60px 70px 85px 40px;
+      min-width: 420px;
+    }
+    .admin-table-header .col-goal, .admin-user-row .au-goal,
+    .admin-table-header .col-records, .admin-user-row .au-records,
+    .admin-table-header .col-first-login, .admin-user-row .au-first-login { display: none; }
+  }
+
   .footer { text-align: center; padding: 8px 0 4px; font-size: 12px; color: var(--text-secondary); grid-column: 1 / -1; }
 
   /* Responsive: single column on narrow screens */
@@ -510,8 +719,79 @@
 </head>
 <body>
 
-<!-- Auto-load data file from same folder. -->
-<script src="water-data.js" onerror="window.__WATER_DATA__=null"></script>
+<!-- Login overlay -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-icon">💧</div>
+    <h2>喝了么</h2>
+    <div class="login-sub">输入用户名即可开始记录每日饮水</div>
+    <input type="text" id="loginInput" placeholder="请输入用户名" maxlength="20" autocomplete="off"
+           onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">进 入</button>
+    <div class="login-error" id="loginError">用户名不能为空</div>
+    <div class="login-hint">首次输入会自动创建账号 · 本设备将记住登录状态</div>
+    <button class="admin-link" onclick="showAdminLogin()">🛠 进入后台管理</button>
+  </div>
+</div>
+
+<!-- Admin password overlay -->
+<div class="admin-pw-overlay" id="adminPwOverlay" onclick="if(event.target===this)closeAdminLogin()">
+  <div class="admin-pw-box">
+    <div class="icon">🔒</div>
+    <h2>后台管理</h2>
+    <div class="sub">请输入管理密码</div>
+    <input type="password" id="adminPwInput" placeholder="管理密码" autocomplete="off"
+           onkeydown="if(event.key==='Enter')tryAdminLogin()">
+    <div class="pw-error" id="adminPwError">密码错误</div>
+    <button class="pw-btn" onclick="tryAdminLogin()">进 入</button>
+    <button class="pw-back" onclick="closeAdminLogin()">← 返回</button>
+  </div>
+</div>
+
+<!-- Admin panel overlay -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>🛠 后台管理 · 用户总览</h1>
+      <div class="admin-actions">
+        <button class="admin-back-btn" onclick="exitAdmin()">← 返回前台</button>
+      </div>
+    </div>
+    <div class="admin-summary" id="adminSummary"></div>
+    <div class="admin-chart-card" id="adminChartCard" style="display:none;">
+      <h3>📈 近 7 天日活用户</h3>
+      <div class="admin-chart" id="adminChart"></div>
+    </div>
+    <div class="admin-user-table">
+      <div class="admin-table-header">
+        <span></span>
+        <span>用户名</span>
+        <span class="col-records">记录条数</span>
+        <span>记录天数</span>
+        <span>总饮水量</span>
+        <span class="col-goal">每日目标</span>
+        <span class="col-first-login">首次登录</span>
+        <span>最后活跃</span>
+        <span>操作</span>
+      </div>
+      <div id="adminUserList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete user confirmation modal -->
+<div class="modal-overlay" id="deleteUserOverlay" style="z-index: 6000;">
+  <div class="modal">
+    <h3>删除用户？</h3>
+    <p id="deleteUserMsg">此操作将永久删除该用户的所有喝水记录，不可撤销。</p>
+    <div class="actions">
+      <button class="btn btn-cancel" onclick="closeDeleteUser()">取消</button>
+      <button class="btn btn-confirm" onclick="executeDeleteUser()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Data is now per-user in localStorage, no external file needed -->
 
 <div class="layout">
   <!-- ===== Header (spans both columns) ===== -->
@@ -520,6 +800,11 @@
     <p id="dateText"></p>
     <div class="status-bar" id="statusBar"></div>
     <div class="header-actions">
+      <div class="user-badge" id="userBadge" style="display:none;">
+        <span class="avatar" id="userAvatar"></span>
+        <span id="userName"></span>
+        <button class="logout-btn" onclick="doLogout()" title="退出登录">⏻</button>
+      </div>
       <button class="icon-btn" onclick="exportData()" title="导出数据">📤</button>
       <button class="icon-btn" onclick="document.getElementById('importFile').click()" title="从文件导入数据">📥</button>
       <input type="file" id="importFile" accept=".js,.json" style="display:none" onchange="importData(event)">
@@ -647,7 +932,7 @@
     </div>
   </div>
 
-  <div class="footer">💧 喝水追踪器 · 双击打开即用 · 数据自动保存</div>
+  <div class="footer">💧 喝水追踪器 · 数据按用户隔离 · 本设备自动登录</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -728,31 +1013,117 @@
 </div>
 
 <script>
-  var STORAGE_KEY = 'water_tracker_data_v1';
   var DEFAULT_GOAL = 2000;
   var RING_CIRCUMFERENCE = 2 * Math.PI * 76;
+  var SESSION_KEY = 'water_tracker_session';   // current logged-in user
+  var USERS_KEY = 'water_tracker_users';        // registry of all usernames
 
-  // ---- Data layer ----
+  // ---- User / Session layer ----
+
+  var currentUser = null;
+
+  function userKey(username) {
+    return 'water_tracker_user_' + username;
+  }
+
+  function getRegisteredUsers() {
+    try {
+      var list = JSON.parse(localStorage.getItem(USERS_KEY));
+      return Array.isArray(list) ? list : [];
+    } catch(e) { return []; }
+  }
+
+  function registerUser(username) {
+    var users = getRegisteredUsers();
+    if (users.indexOf(username) === -1) {
+      users.push(username);
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+  }
+
+  function checkSession() {
+    var saved = localStorage.getItem(SESSION_KEY);
+    if (saved) {
+      currentUser = saved;
+      return true;
+    }
+    return false;
+  }
+
+  function doLogin() {
+    var input = document.getElementById('loginInput');
+    var errEl = document.getElementById('loginError');
+    var name = (input.value || '').trim();
+    if (!name) {
+      errEl.textContent = '用户名不能为空';
+      errEl.style.display = 'block';
+      input.focus();
+      return;
+    }
+    // Check if user already exists
+    var users = getRegisteredUsers();
+    var isNew = users.indexOf(name) === -1;
+    if (isNew) registerUser(name);
+
+    // Track login times
+    var userData = {};
+    try { userData = JSON.parse(localStorage.getItem(userKey(name))) || {}; } catch(e) {}
+    var nowISO = new Date().toISOString();
+    if (isNew || !userData._firstLogin) userData._firstLogin = nowISO;
+    userData._lastActive = nowISO;
+    localStorage.setItem(userKey(name), JSON.stringify(userData));
+
+    // Set session
+    currentUser = name;
+    localStorage.setItem(SESSION_KEY, name);
+
+    // Hide login, show app
+    document.getElementById('loginOverlay').classList.add('hidden');
+    renderUserBadge();
+    calInit();
+    renderAll();
+
+    if (isNew) {
+      showToast('欢迎 ' + name + '！账号已创建 🎉');
+    } else {
+      showToast('欢迎回来，' + name + ' 👋');
+    }
+  }
+
+  function doLogout() {
+    localStorage.removeItem(SESSION_KEY);
+    currentUser = null;
+    // Show login overlay
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    document.getElementById('loginInput').value = '';
+    document.getElementById('userBadge').style.display = 'none';
+    document.getElementById('loginInput').focus();
+  }
+
+  function renderUserBadge() {
+    if (!currentUser) return;
+    document.getElementById('userBadge').style.display = 'flex';
+    document.getElementById('userName').textContent = currentUser;
+    document.getElementById('userAvatar').textContent = currentUser.charAt(0).toUpperCase();
+  }
+
+  // ---- Data layer (per-user) ----
 
   function loadData() {
+    if (!currentUser) return {};
     try {
-      var stored = localStorage.getItem(STORAGE_KEY);
+      var stored = localStorage.getItem(userKey(currentUser));
       if (stored) {
         var parsed = JSON.parse(stored);
         if (parsed && typeof parsed === 'object') return parsed;
       }
     } catch(e) {}
-    if (window.__WATER_DATA__ && typeof window.__WATER_DATA__ === 'object') {
-      var fileData = window.__WATER_DATA__;
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(fileData)); } catch(e) {}
-      return fileData;
-    }
     return {};
   }
 
   function saveData(data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    window.__WATER_DATA__ = data;
+    if (!currentUser) return;
+    localStorage.setItem(userKey(currentUser), JSON.stringify(data));
   }
 
   function getGoal() {
@@ -895,7 +1266,9 @@
   }
 
   function exportData() {
-    downloadFile(generateFileContent(loadData()), 'water-data.js', 'application/javascript');
+    var data = loadData();
+    data._user = currentUser;
+    downloadFile(generateFileContent(data), 'water-data.js', 'application/javascript');
     showToast('已导出 water-data.js 📤');
   }
 
@@ -916,8 +1289,7 @@
       }
       saveData(data);
       renderAll();
-      downloadFile(generateFileContent(data), 'water-data.js', 'application/javascript');
-      showToast('数据导入成功，已自动覆盖 water-data.js ✅');
+      showToast('数据导入成功 ✅');
       event.target.value = '';
     };
     reader.readAsText(file);
@@ -1258,11 +1630,7 @@
 
   function renderStatusBar() {
     var bar = document.getElementById('statusBar');
-    if (window.__WATER_DATA__) {
-      bar.innerHTML = '<span class="dot file"></span> 已从 water-data.js 自动加载';
-    } else {
-      bar.innerHTML = '<span class="dot browser"></span> 使用浏览器本地存储';
-    }
+    bar.innerHTML = '<span class="dot browser"></span> 数据已隔离 · 仅你可见';
   }
 
   function renderHeader() {
@@ -1370,6 +1738,9 @@
   document.getElementById('modalOverlay').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
   });
+  document.getElementById('deleteUserOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteUser();
+  });
   document.getElementById('backfillOverlay').addEventListener('click', function(e) {
     if (e.target === this) closeBackfill();
   });
@@ -1379,9 +1750,213 @@
     if (e.key === 'Enter') backfillCustom();
   });
 
+  // ---- Admin ----
+
+  var ADMIN_PASSWORD = 'water123';
+
+  function showAdminLogin() {
+    document.getElementById('adminPwInput').value = '';
+    document.getElementById('adminPwError').style.display = 'none';
+    document.getElementById('adminPwOverlay').classList.add('show');
+    setTimeout(function() { document.getElementById('adminPwInput').focus(); }, 100);
+  }
+
+  function closeAdminLogin() {
+    document.getElementById('adminPwOverlay').classList.remove('show');
+  }
+
+  function tryAdminLogin() {
+    var pw = document.getElementById('adminPwInput').value;
+    if (pw === ADMIN_PASSWORD) {
+      closeAdminLogin();
+      showAdminPanel();
+    } else {
+      document.getElementById('adminPwError').style.display = 'block';
+      var input = document.getElementById('adminPwInput');
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  function exitAdmin() {
+    document.getElementById('adminOverlay').classList.remove('show');
+  }
+
+  // ---- Delete user ----
+
+  var pendingDeleteUser = null;
+
+  function confirmDeleteUser(username) {
+    pendingDeleteUser = username;
+    document.getElementById('deleteUserMsg').textContent =
+      '此操作将永久删除用户「' + username + '」及其所有喝水记录，不可撤销。';
+    document.getElementById('deleteUserOverlay').classList.add('show');
+  }
+
+  function closeDeleteUser() {
+    pendingDeleteUser = null;
+    document.getElementById('deleteUserOverlay').classList.remove('show');
+  }
+
+  function executeDeleteUser() {
+    if (!pendingDeleteUser) return;
+    var username = pendingDeleteUser;
+    // Remove user data
+    localStorage.removeItem(userKey(username));
+    // Remove from registered users list
+    var users = getRegisteredUsers().filter(function(u) { return u !== username; });
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    // If deleting current session user, clear session
+    if (currentUser === username) {
+      localStorage.removeItem(SESSION_KEY);
+      currentUser = null;
+    }
+    closeDeleteUser();
+    showToast('用户「' + username + '」已删除 🗑');
+    // Refresh admin panel
+    showAdminPanel();
+  }
+
+  function getUserStats(username) {
+    try {
+      var data = JSON.parse(localStorage.getItem(userKey(username)));
+      if (!data || typeof data !== 'object') return { days: 0, records: 0, total: 0, goal: DEFAULT_GOAL, firstLogin: null, lastActive: null };
+      var goal = data._goal || DEFAULT_GOAL;
+      var days = 0, records = 0, total = 0;
+      Object.keys(data).forEach(function(k) {
+        if (k === '_goal' || k === '_firstLogin' || k === '_lastActive' || !/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
+        var dayLog = data[k] || [];
+        if (dayLog.length > 0) {
+          days++;
+          records += dayLog.length;
+          total += dayLog.reduce(function(s, r) { return s + r.amount; }, 0);
+        }
+      });
+      return { days: days, records: records, total: total, goal: goal, firstLogin: data._firstLogin || null, lastActive: data._lastActive || null };
+    } catch(e) {
+      return { days: 0, records: 0, total: 0, goal: DEFAULT_GOAL, firstLogin: null, lastActive: null };
+    }
+  }
+
+  function formatDateTime(iso) {
+    if (!iso) return '-';
+    try {
+      var d = new Date(iso);
+      return pad2(d.getMonth()+1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    } catch(e) { return '-'; }
+  }
+
+  function showAdminPanel() {
+    var users = getRegisteredUsers();
+    var listEl = document.getElementById('adminUserList');
+    var summaryEl = document.getElementById('adminSummary');
+    var chartCardEl = document.getElementById('adminChartCard');
+    var chartEl = document.getElementById('adminChart');
+
+    if (users.length === 0) {
+      listEl.innerHTML = '<div class="admin-empty">还没有注册用户 📭</div>';
+      summaryEl.innerHTML = '';
+      chartCardEl.style.display = 'none';
+      document.getElementById('adminOverlay').classList.add('show');
+      return;
+    }
+
+    // Compute stats for all users
+    var allStats = users.map(function(u) {
+      var s = getUserStats(u);
+      return { name: u, days: s.days, records: s.records, total: s.total, goal: s.goal, firstLogin: s.firstLogin, lastActive: s.lastActive };
+    });
+
+    // Sort by last active descending
+    allStats.sort(function(a, b) {
+      var la = a.lastActive || ''; var lb = b.lastActive || '';
+      return lb.localeCompare(la);
+    });
+
+    // Summary
+    var totalUsers = allStats.length;
+    var totalRecords = allStats.reduce(function(s, u) { return s + u.records; }, 0);
+    var totalDays = allStats.reduce(function(s, u) { return s + u.days; }, 0);
+    var totalWater = allStats.reduce(function(s, u) { return s + u.total; }, 0);
+
+    summaryEl.innerHTML =
+      '<div class="stat-card"><div class="sl">注册用户</div><div class="sv">' + totalUsers + '</div></div>' +
+      '<div class="stat-card"><div class="sl">总记录条数</div><div class="sv">' + totalRecords + '</div></div>' +
+      '<div class="stat-card"><div class="sl">总记录天数</div><div class="sv">' + totalDays + '天</div></div>' +
+      '<div class="stat-card"><div class="sl">总饮水量</div><div class="sv complete">' + (totalWater >= 1000 ? (totalWater / 1000).toFixed(1) + 'L' : totalWater + 'ml') + '</div></div>';
+
+    // 7-day DAU chart
+    chartCardEl.style.display = 'block';
+    var dayLabels = ['日','一','二','三','四','五','六'];
+    var chartDays = [];
+    for (var i = 6; i >= 0; i--) {
+      var ds = dateStr(-i);
+      var count = 0;
+      allStats.forEach(function(u) {
+        try {
+          var ud = JSON.parse(localStorage.getItem(userKey(u.name)));
+          if (ud && ud[ds] && ud[ds].length > 0) count++;
+        } catch(e) {}
+      });
+      chartDays.push({ date: ds, label: i === 0 ? '今天' : dayLabels[new Date(ds + 'T00:00:00').getDay()], count: count, isToday: i === 0 });
+    }
+    var maxCount = 1;
+    chartDays.forEach(function(d) { if (d.count > maxCount) maxCount = d.count; });
+    chartEl.innerHTML = chartDays.map(function(d) {
+      var heightPct = (d.count / maxCount) * 100;
+      var barClass = 'admin-bar' + (d.isToday ? ' today' : '');
+      return '<div class="admin-bar-group">' +
+        (d.count > 0 ? '<span class="admin-bar-amount">' + d.count + '人</span>' : '<span class="admin-bar-amount">&nbsp;</span>') +
+        '<div class="' + barClass + '" style="height:' + Math.max(3, heightPct) + '%"></div>' +
+        '<span class="admin-bar-label">' + d.label + '</span>' +
+      '</div>';
+    }).join('');
+
+    // User rows
+    listEl.innerHTML = allStats.map(function(u) {
+      var totalDisplay = u.total >= 1000 ? (u.total / 1000).toFixed(1) + 'L' : u.total + 'ml';
+      return '<div class="admin-user-row">' +
+        '<div class="au-avatar">' + u.name.charAt(0).toUpperCase() + '</div>' +
+        '<div class="au-name">' + u.name + '</div>' +
+        '<div class="au-records col-records">' + u.records + ' 条</div>' +
+        '<div class="au-days">' + u.days + ' 天</div>' +
+        '<div class="au-total">' + totalDisplay + '</div>' +
+        '<div class="au-goal col-goal">' + u.goal + 'ml</div>' +
+        '<div class="au-first-login col-first-login">' + formatDateTime(u.firstLogin) + '</div>' +
+        '<div class="au-last-active">' + formatDateTime(u.lastActive) + '</div>' +
+        '<button class="au-delete-btn" onclick="confirmDeleteUser(\'' + u.name.replace(/'/g, "\\'") + '\')" title="删除用户">🗑</button>' +
+      '</div>';
+    }).join('');
+
+    document.getElementById('adminOverlay').classList.add('show');
+  }
+
   // ---- Init ----
-  calInit();
-  renderAll();
+
+  function initApp() {
+    if (checkSession()) {
+      // Update last active time
+      try {
+        var ud = JSON.parse(localStorage.getItem(userKey(currentUser))) || {};
+        ud._lastActive = new Date().toISOString();
+        if (!ud._firstLogin) ud._firstLogin = ud._lastActive;
+        localStorage.setItem(userKey(currentUser), JSON.stringify(ud));
+      } catch(e) {}
+      // Auto-login (session cache hit)
+      document.getElementById('loginOverlay').classList.add('hidden');
+      renderUserBadge();
+      calInit();
+      renderAll();
+    } else {
+      // Show login screen
+      document.getElementById('loginOverlay').classList.remove('hidden');
+      setTimeout(function() {
+        document.getElementById('loginInput').focus();
+      }, 100);
+    }
+  }
+
+  initApp();
 </script>
 
 </body>
