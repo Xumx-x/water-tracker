@@ -11,12 +11,12 @@
    * 部署前必填（见项目根目录 DEPLOY.md）：
    *   1. SUPABASE_URL      在 Supabase 控制台 Project Settings → API → Project URL
    *   2. SUPABASE_ANON_KEY 同上页面 → anon public key
-   * 可选：
-   *   ADMIN_PASSWORD       后台管理密码（仅前端展示层控制）
+   * 角色说明：
+   *   普通用户登录后无后台入口；管理员在导航栏用户区左侧显示「🛠 后台管理」。
+   *   设置管理员：update profiles set role='admin' where username='你的用户名';
    * ============================================================ */
   var SUPABASE_URL = 'https://ahjyvrqaxsusqffavdrv.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoanl2cnFheHN1c3FmZmF2ZHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNzA4ODcsImV4cCI6MjEwMjc0Njg4N30.aEGhBucjWz8EFP-y2BCdfNQycqS4xIMQ8LoJIxeyqWA';
-  var ADMIN_PASSWORD = 'water123';
 </script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -109,6 +109,13 @@
     cursor: pointer; transition: all 0.2s;
   }
   .nav-logout:hover { background: rgba(239, 83, 80, 0.3); color: #ff8a80; }
+  .nav-admin {
+    display: none; align-items: center; gap: 5px;
+    border: none; border-radius: 8px; padding: 0 12px; height: 32px;
+    background: rgba(255, 255, 255, 0.12); color: #cfd8e3; font-size: 13px;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .nav-admin:hover { background: var(--primary); color: #fff; }
 
   /* ===== 主体容器与页面切换 ===== */
   .container {
@@ -714,48 +721,6 @@
   .cup-del-btn:hover { background: #ffcdd2; }
   .cup-add-hint { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
 
-  /* Admin link on login page */
-  .admin-link {
-    display: block; margin-top: 14px; font-size: 13px; color: var(--text-secondary);
-    cursor: pointer; transition: color 0.2s; background: none; border: none;
-    text-decoration: underline; text-underline-offset: 3px;
-  }
-  .admin-link:hover { color: var(--primary); }
-
-  /* Admin password overlay */
-  .admin-pw-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-    display: none; align-items: center; justify-content: center; z-index: 5500;
-    padding: 20px;
-  }
-  .admin-pw-overlay.show { display: flex; }
-  .admin-pw-box {
-    background: var(--card); border-radius: 24px; padding: 36px 32px;
-    max-width: 360px; width: 90%; box-shadow: 0 12px 48px rgba(0,0,0,0.25);
-    text-align: center;
-  }
-  .admin-pw-box .icon { font-size: 40px; margin-bottom: 10px; }
-  .admin-pw-box h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
-  .admin-pw-box .sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
-  .admin-pw-box input {
-    width: 100%; border: 2px solid #e3f2fd; border-radius: 12px;
-    padding: 12px 16px; font-size: 15px; outline: none; text-align: center;
-    transition: border-color 0.2s; margin-bottom: 12px;
-  }
-  .admin-pw-box input:focus { border-color: var(--primary); }
-  .admin-pw-box .pw-btn {
-    width: 100%; border: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white; border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 600;
-    cursor: pointer; transition: transform 0.15s;
-  }
-  .admin-pw-box .pw-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(33,150,243,0.3); }
-  .admin-pw-box .pw-back {
-    margin-top: 12px; font-size: 13px; color: var(--text-secondary);
-    cursor: pointer; background: none; border: none; transition: color 0.2s;
-  }
-  .admin-pw-box .pw-back:hover { color: var(--primary); }
-  .admin-pw-box .pw-error { color: var(--danger); font-size: 13px; margin-top: 8px; display: none; }
-
   /* Admin panel overlay */
   .admin-overlay {
     position: fixed; inset: 0; background: linear-gradient(135deg, #e3f2fd 0%, #f0f6ff 50%, #e8f5e9 100%);
@@ -825,6 +790,12 @@
     font-size: 15px; font-weight: 700;
   }
   .admin-user-row .au-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .au-role {
+    display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 500;
+    color: var(--text-secondary); border: 1px solid #e0e0e0; border-radius: 6px; padding: 0 5px;
+    vertical-align: 1px;
+  }
+  .au-role.admin { color: #d32f2f; border-color: #ffcdd2; background: #fff5f5; }
   .admin-user-row .au-days, .admin-user-row .au-records, .admin-user-row .au-total, .admin-user-row .au-goal,
   .admin-user-row .au-first-login, .admin-user-row .au-last-active {
     font-size: 13px; color: var(--text-secondary); text-align: center;
@@ -1029,6 +1000,7 @@
       <a class="nav-link" data-page="forum" href="#/forum">喝友论坛</a>
     </div>
     <div class="nav-right">
+      <button class="nav-admin" id="navAdmin" onclick="showAdminPanel()" title="进入后台管理">🛠 后台管理</button>
       <div class="nav-user" id="navUser" onclick="toggleUserMenu(event)">
         <span class="nav-avatar" id="navAvatar"></span>
         <span id="navUserName"></span>
@@ -1062,21 +1034,6 @@
     <button class="login-btn" id="loginBtn" onclick="doLogin()">进 入</button>
     <div class="login-error" id="loginError">用户名或密码错误</div>
     <div class="login-hint">首次输入会自动创建账号 · 本设备将记住登录状态</div>
-    <button class="admin-link" onclick="showAdminLogin()">🛠 进入后台管理</button>
-  </div>
-</div>
-
-<!-- Admin password overlay -->
-<div class="admin-pw-overlay" id="adminPwOverlay" onclick="if(event.target===this)closeAdminLogin()">
-  <div class="admin-pw-box">
-    <div class="icon">🔒</div>
-    <h2>后台管理</h2>
-    <div class="sub">请输入管理密码</div>
-    <input type="password" id="adminPwInput" placeholder="管理密码" autocomplete="off"
-           onkeydown="if(event.key==='Enter')tryAdminLogin()">
-    <div class="pw-error" id="adminPwError">密码错误</div>
-    <button class="pw-btn" onclick="tryAdminLogin()">进 入</button>
-    <button class="pw-back" onclick="closeAdminLogin()">← 返回</button>
   </div>
 </div>
 
@@ -1515,8 +1472,11 @@
 
   // ---- 全局状态 ----
   var db = null;            // Supabase 客户端
-  var currentUser = null;   // 当前登录用户名
+  var currentUser = null;   // 当前登录用户名（展示用）
+  var currentUserId = null; // 当前登录用户 id（uuid，数据关联用）
+  var currentUserRole = 'user'; // 当前用户角色：user | admin
   var cache = {};           // 当前用户数据内存缓存（结构与旧版 userData 一致）
+  var userNameMap = {};     // user_id -> username（排行榜/论坛/荣誉墙/后台展示用）
 
   // ---- 快速记录默认配置 ----
   var DEFAULT_CUPS = [
@@ -1599,7 +1559,7 @@
     if (perr) throw perr;
     if (!profile) throw new Error('用户不存在');
     var { data: records, error: rerr } = await client.from('water_records')
-      .select('*').eq('username', username);
+      .select('*').eq('user_id', profile.id);
     if (rerr) throw rerr;
     var data = { _goal: profile.goal, _firstLogin: profile.first_login, _lastActive: profile.last_active };
     // 解析自定义快速记录配置（JSON 字符串或 null）
@@ -1616,6 +1576,21 @@
     });
     cache = data;
     currentUser = username;
+    currentUserId = profile.id;
+    currentUserRole = profile.role || 'user';
+  }
+
+  // ---- 用户名映射（user_id -> username，跨模块展示用） ----
+  async function loadUserNameMap() {
+    var client = initDb();
+    var { data: profiles, error } = await client.from('profiles').select('id, username');
+    if (error) throw error;
+    userNameMap = {};
+    (profiles || []).forEach(function(p) { userNameMap[p.id] = p.username; });
+    return userNameMap;
+  }
+  function userName(id) {
+    return userNameMap[id] || '用户';
   }
 
   // ---- Date helpers ----
@@ -1727,10 +1702,14 @@
   function doLogout() {
     localStorage.removeItem(SESSION_KEY);
     currentUser = null;
+    currentUserId = null;
+    currentUserRole = 'user';
     cache = {};
+    userNameMap = {};
     closeUserMenu();
     document.getElementById('navUser').style.display = 'none';
     document.getElementById('navLogout').style.display = 'none';
+    document.getElementById('navAdmin').style.display = 'none';
     document.getElementById('loginOverlay').classList.remove('hidden');
     document.getElementById('loginInput').value = '';
     document.getElementById('loginPwInput').value = '';
@@ -1742,6 +1721,8 @@
     if (!currentUser) return;
     document.getElementById('navUser').style.display = 'flex';
     document.getElementById('navLogout').style.display = 'flex';
+    var adminBtn = document.getElementById('navAdmin');
+    if (adminBtn) adminBtn.style.display = (currentUserRole === 'admin') ? 'flex' : 'none';
     document.getElementById('navUserName').textContent = currentUser;
     document.getElementById('navAvatar').textContent = currentUser.charAt(0).toUpperCase();
     document.getElementById('ddName').textContent = currentUser;
@@ -1749,13 +1730,13 @@
 
   // ---- Actions（全部异步写 Supabase） ----
   async function addWater(amount) {
-    if (!currentUser) return;
+    if (!currentUserId) return;
     var today = todayStr();
     var now = new Date();
     var time = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
     try {
       var { data, error } = await db.from('water_records')
-        .insert({ username: currentUser, date: today, time: time, amount: amount }).select();
+        .insert({ user_id: currentUserId, date: today, time: time, amount: amount }).select();
       if (error) throw error;
       if (!cache[today]) cache[today] = [];
       cache[today].push({ id: data[0].id, time: time, amount: amount });
@@ -1776,7 +1757,7 @@
   async function deleteRecord(id) {
     try {
       var { error } = await db.from('water_records').delete()
-        .eq('id', id).eq('username', currentUser);
+        .eq('id', id).eq('user_id', currentUserId);
       if (error) throw error;
       // 从缓存所有日期中移除该记录；某天删空后移除该日期键
       Object.keys(cache).forEach(function(d) {
@@ -1838,7 +1819,7 @@
     var today = todayStr();
     try {
       var { error } = await db.from('water_records').delete()
-        .eq('username', currentUser).eq('date', today);
+        .eq('user_id', currentUserId).eq('date', today);
       if (error) throw error;
       cache[today] = [];
       closeModal();
@@ -1862,7 +1843,7 @@
     var oldGoal = cache._goal || DEFAULT_GOAL;
     cache._goal = goal;
     try {
-      var { error } = await db.from('profiles').update({ goal: goal }).eq('username', currentUser);
+      var { error } = await db.from('profiles').update({ goal: goal }).eq('id', currentUserId);
       if (error) throw error;
     } catch(e) {
       cache._goal = oldGoal;
@@ -1902,14 +1883,14 @@
     try {
       var client = initDb();
       var { data: profile, error: perr } = await client.from('profiles')
-        .select('password_hash').eq('username', currentUser).maybeSingle();
+        .select('password_hash').eq('id', currentUserId).maybeSingle();
       if (perr) throw perr;
       if (!profile) throw new Error('用户不存在');
       var ok = await verifyPassword(oldPw, profile.password_hash);
       if (!ok) { showToast('当前密码不正确'); return; }
       var hash = await hashPassword(newPw);
       var { error } = await client.from('profiles').update({ password_hash: hash })
-        .eq('username', currentUser);
+        .eq('id', currentUserId);
       if (error) throw error;
       document.getElementById('pwOld').value = '';
       document.getElementById('pwNew').value = '';
@@ -2007,7 +1988,7 @@
     try {
       var { error } = await db.from('profiles')
         .update({ custom_cups: JSON.stringify(cups) })
-        .eq('username', currentUser);
+        .eq('id', currentUserId);
       if (error) throw error;
       renderQuickAdd();
       showToast('快速记录配置已保存 ✅');
@@ -2021,7 +2002,7 @@
     try {
       var { error } = await db.from('profiles')
         .update({ custom_cups: null })
-        .eq('username', currentUser);
+        .eq('id', currentUserId);
       if (error) throw error;
       renderCupsEditor();
       renderQuickAdd();
@@ -2049,6 +2030,7 @@
     var data = loadData();
     var clone = JSON.parse(JSON.stringify(data));
     clone._user = currentUser;
+    clone._userId = currentUserId;
     downloadFile(generateFileContent(clone), 'water-data.js', 'application/javascript');
     showToast('已导出 water-data.js 📤');
   }
@@ -2085,14 +2067,14 @@
     var username = currentUser;
     var client = initDb();
     // 清空该用户现有记录
-    var { error: delErr } = await client.from('water_records').delete().eq('username', username);
+    var { error: delErr } = await client.from('water_records').delete().eq('user_id', currentUserId);
     if (delErr) throw delErr;
     // 重插记录
     var rows = [];
     Object.keys(data).forEach(function(k) {
       if (k === '_goal' || k === '_firstLogin' || k === '_lastActive' || !/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
       (data[k] || []).forEach(function(r) {
-        rows.push({ username: username, date: k, time: r.time, amount: r.amount });
+        rows.push({ user_id: currentUserId, date: k, time: r.time, amount: r.amount });
       });
     });
     if (rows.length) {
@@ -2101,13 +2083,13 @@
     }
     // 更新目标
     if (data._goal) {
-      var { error: goalErr } = await client.from('profiles').update({ goal: data._goal }).eq('username', username);
+      var { error: goalErr } = await client.from('profiles').update({ goal: data._goal }).eq('id', currentUserId);
       if (goalErr) throw goalErr;
     }
     // 更新自定义快速记录配置
     if (data._customCups !== undefined) {
       var cupsVal = data._customCups ? JSON.stringify(data._customCups) : null;
-      await client.from('profiles').update({ custom_cups: cupsVal }).eq('username', username);
+      await client.from('profiles').update({ custom_cups: cupsVal }).eq('id', currentUserId);
     }
     await loadUserData(username);
   }
@@ -2157,7 +2139,7 @@
     if (date > todayStr()) { showToast('不能选择未来的日期'); return; }
     try {
       var { data, error } = await db.from('water_records')
-        .insert({ username: currentUser, date: date, time: time, amount: amount }).select();
+        .insert({ user_id: currentUserId, date: date, time: time, amount: amount }).select();
       if (error) throw error;
       if (!cache[date]) cache[date] = [];
       cache[date].push({ id: data[0].id, time: time, amount: amount });
@@ -2627,20 +2609,22 @@
       var client = initDb();
       // 拉取该时段明细（仅三列），前端聚合分组（Supabase anon 默认禁用数据库聚合函数）
       var { data, error } = await client.from('water_records')
-        .select('username, date, amount')
+        .select('user_id, date, amount')
         .gte('date', dates.start)
         .lte('date', dates.end);
       if (error) throw error;
       if (rankState.reqId !== myReqId) return; // 已有更新的请求，丢弃本次结果
+      await loadUserNameMap(); // user_id -> username 展示映射
+      if (rankState.reqId !== myReqId) return;
       var map = {};
       (data || []).forEach(function(r) {
-        if (!r.username || !r.amount) return;
-        if (!map[r.username]) map[r.username] = { total: 0, cnt: 0 };
-        map[r.username].total += r.amount;
-        map[r.username].cnt += 1;
+        if (!r.user_id || !r.amount) return;
+        if (!map[r.user_id]) map[r.user_id] = { total: 0, cnt: 0 };
+        map[r.user_id].total += r.amount;
+        map[r.user_id].cnt += 1;
       });
-      var rows = Object.keys(map).map(function(u) {
-        return { username: u, total: map[u].total, cnt: map[u].cnt };
+      var rows = Object.keys(map).map(function(uid) {
+        return { uid: uid, username: userNameMap[uid] || uid, total: map[uid].total, cnt: map[uid].cnt };
       });
       renderRanking(rows, range);
     } catch(e) {
@@ -2653,14 +2637,13 @@
   function renderRanking(rows, range) {
     var list = rows.filter(function(r) { return r.username && r.total > 0; })
       .sort(function(a, b) { return b.total - a.total; });
-    var me = currentUser;
     var myIdx = -1;
-    list.forEach(function(r, i) { if (r.username === me) myIdx = i; });
+    list.forEach(function(r, i) { if (r.uid === currentUserId) myIdx = i; });
     var top10 = list.slice(0, 10);
     var medal = ['🥇', '🥈', '🥉'];
     var html = '';
     top10.forEach(function(r, i) {
-      var isMe = r.username === me;
+      var isMe = r.uid === currentUserId;
       html += '<div class="rank-row' + (isMe ? ' me' : '') + '">' +
         '<span class="rank-no' + (i < 3 ? ' top' + (i + 1) : '') + '">' + (i < 3 ? medal[i] : (i + 1)) + '</span>' +
         '<span class="rank-avatar" style="background:' + avatarColor(r.username) + '">' + escHtml(r.username.charAt(0).toUpperCase()) + '</span>' +
@@ -2699,12 +2682,13 @@
   async function loadForumPosts() {
     var client = initDb();
     var kw = forumState.keyword.trim();
+    await loadUserNameMap(); // user_id -> username 展示映射
     var { data: posts, error: pErr } = await client.from('forum_posts')
       .select('*').order('created_at', { ascending: false }).limit(200);
     if (pErr) throw pErr;
 
     var { data: likes, error: lErr } = await client.from('forum_likes')
-      .select('post_id, username').limit(5000);
+      .select('post_id, user_id').limit(5000);
     if (lErr) throw lErr;
 
     var { data: comments, error: cErr } = await client.from('forum_comments')
@@ -2714,7 +2698,7 @@
     var likeCount = {}, likedByMe = {}, commentCount = {};
     (likes || []).forEach(function(l) {
       likeCount[l.post_id] = (likeCount[l.post_id] || 0) + 1;
-      if (l.username === currentUser) likedByMe[l.post_id] = true;
+      if (l.user_id === currentUserId) likedByMe[l.post_id] = true;
     });
     (comments || []).forEach(function(c) {
       commentCount[c.post_id] = (commentCount[c.post_id] || 0) + 1;
@@ -2724,7 +2708,7 @@
       if (!kw) return true;
       return (p.title || '').indexOf(kw) >= 0 ||
              (p.content || '').indexOf(kw) >= 0 ||
-             (p.author || '').indexOf(kw) >= 0;
+             userName(p.user_id).indexOf(kw) >= 0;
     });
 
     forumState.posts = list;
@@ -2748,13 +2732,14 @@
       var liked = !!forumState.likedByMe[p.id];
       var likeCount = forumState.likeCount[p.id] || 0;
       var commentCount = forumState.commentCount[p.id] || 0;
-      var delBtn = (p.author === currentUser)
+      var author = userName(p.user_id);
+      var delBtn = (p.user_id === currentUserId)
         ? '<button class="post-del" onclick="deleteForumPost(' + p.id + ')" title="删除帖子">🗑</button>' : '';
       return '' +
         '<div class="post-card">' +
           '<div class="post-header">' +
-            '<span class="post-avatar">' + escHtml((p.author || '?').charAt(0).toUpperCase()) + '</span>' +
-            '<span class="post-author">' + escHtml(p.author) + '</span>' +
+            '<span class="post-avatar">' + escHtml(author.charAt(0).toUpperCase()) + '</span>' +
+            '<span class="post-author">' + escHtml(author) + '</span>' +
             '<span class="post-time">' + fmtPostTime(p.created_at) + '</span>' + delBtn +
           '</div>' +
           '<div class="post-title">' + escHtml(p.title) + '</div>' +
@@ -2813,7 +2798,7 @@
     if (title.length > 60) { showToast('标题最多 60 字'); return; }
     if (content.length > 2000) { showToast('内容最多 2000 字'); return; }
     var client = initDb();
-    var { error } = await client.from('forum_posts').insert({ author: currentUser, title: title, content: content });
+    var { error } = await client.from('forum_posts').insert({ user_id: currentUserId, title: title, content: content });
     if (error) { showToast('发布失败：' + error.message); return; }
     closePostModal();
     showToast('发布成功 🎉');
@@ -2825,12 +2810,12 @@
     var client = initDb();
     var already = !!forumState.likedByMe[postId];
     if (already) {
-      var { error } = await client.from('forum_likes').delete().eq('post_id', postId).eq('username', currentUser);
+      var { error } = await client.from('forum_likes').delete().eq('post_id', postId).eq('user_id', currentUserId);
       if (error) { showToast('操作失败：' + error.message); return; }
       forumState.likedByMe[postId] = false;
       forumState.likeCount[postId] = Math.max(0, (forumState.likeCount[postId] || 0) - 1);
     } else {
-      var ins = await client.from('forum_likes').insert({ post_id: postId, username: currentUser });
+      var ins = await client.from('forum_likes').insert({ post_id: postId, user_id: currentUserId });
       if (ins.error) { showToast('操作失败：' + ins.error.message); return; }
       forumState.likedByMe[postId] = true;
       forumState.likeCount[postId] = (forumState.likeCount[postId] || 0) + 1;
@@ -2855,6 +2840,7 @@
       document.getElementById('commentList').innerHTML = '<div class="comments-empty">评论加载失败：' + escHtml(error.message) + '</div>';
       return;
     }
+    await loadUserNameMap();
     renderForumComments(comments || []);
   }
   function closeForumComments() {
@@ -2867,11 +2853,12 @@
       return;
     }
     listEl.innerHTML = comments.map(function(c) {
+      var cname = userName(c.user_id);
       return '' +
         '<div class="comment-item">' +
           '<div class="comment-meta">' +
-            '<span class="comment-avatar">' + escHtml((c.username || '?').charAt(0).toUpperCase()) + '</span>' +
-            '<span class="comment-author">' + escHtml(c.username) + '</span>' +
+            '<span class="comment-avatar">' + escHtml(cname.charAt(0).toUpperCase()) + '</span>' +
+            '<span class="comment-author">' + escHtml(cname) + '</span>' +
             '<span class="comment-time">' + fmtPostTime(c.created_at) + '</span>' +
           '</div>' +
           '<div class="comment-text">' + escHtml(c.content) + '</div>' +
@@ -2885,7 +2872,7 @@
     if (!content) { showToast('请输入评论内容'); return; }
     if (content.length > 500) { showToast('评论最多 500 字'); return; }
     var client = initDb();
-    var { error } = await client.from('forum_comments').insert({ post_id: postId, username: currentUser, content: content });
+    var { error } = await client.from('forum_comments').insert({ post_id: postId, user_id: currentUserId, content: content });
     if (error) { showToast('评论失败：' + error.message); return; }
     document.getElementById('commentInput').value = '';
     openForumComments(postId);
@@ -2931,13 +2918,14 @@
   // 拉取全部勋章计数（表已按用户×类型存储，无聚合需求，规避 PGRST123）
   async function loadHonorWall() {
     var client = initDb();
+    await loadUserNameMap(); // user_id -> username 展示映射
     var { data: badges, error } = await client.from('honor_badges')
-      .select('username, badge_type, count').limit(1000);
+      .select('user_id, badge_type, count').limit(1000);
     if (error) throw error;
 
-    var perUser = {}; // username -> { daily, weekly, monthly, achieve, total }
+    var perUser = {}; // user_id -> { daily, weekly, monthly, achieve, total }
     (badges || []).forEach(function(b) {
-      var u = perUser[b.username] || (perUser[b.username] = { daily: 0, weekly: 0, monthly: 0, achieve: 0, total: 0 });
+      var u = perUser[b.user_id] || (perUser[b.user_id] = { daily: 0, weekly: 0, monthly: 0, achieve: 0, total: 0 });
       var c = b.count || 0;
       if (BADGE_TYPES.some(function(t) { return t.key === b.badge_type; })) {
         u[b.badge_type] = c;
@@ -2945,7 +2933,7 @@
       }
     });
 
-    renderHonorMine(perUser[currentUser] || null);
+    renderHonorMine(perUser[currentUserId] || null);
     renderHonorRank(perUser);
   }
 
@@ -2971,10 +2959,11 @@
   function renderHonorRank(perUser) {
     var el = document.getElementById('honorRankList');
     if (!el) return;
-    var list = Object.keys(perUser).map(function(name) {
-      var u = perUser[name];
+    var list = Object.keys(perUser).map(function(uid) {
+      var u = perUser[uid];
       return {
-        username: name,
+        uid: uid,
+        username: userNameMap[uid] || uid,
         daily: u.daily, weekly: u.weekly, monthly: u.monthly, achieve: u.achieve,
         total: u.daily + u.weekly + u.monthly + u.achieve
       };
@@ -2986,7 +2975,7 @@
     }
     el.innerHTML = list.map(function(u, i) {
       var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
-      var me = u.username === currentUser;
+      var me = u.uid === currentUserId;
       return '' +
         '<div class="honor-rank-row' + (me ? ' me' : '') + '">' +
           '<span class="c-rank">' + medal + '</span>' +
@@ -3072,60 +3061,39 @@
     if (e.key === 'Enter') backfillCustom();
   });
 
-  // ---- Admin ----
-  function showAdminLogin() {
-    document.getElementById('adminPwInput').value = '';
-    document.getElementById('adminPwError').style.display = 'none';
-    document.getElementById('adminPwOverlay').classList.add('show');
-    setTimeout(function() { document.getElementById('adminPwInput').focus(); }, 100);
-  }
-
-  function closeAdminLogin() {
-    document.getElementById('adminPwOverlay').classList.remove('show');
-  }
-
-  function tryAdminLogin() {
-    var pw = document.getElementById('adminPwInput').value;
-    if (pw === ADMIN_PASSWORD) {
-      closeAdminLogin();
-      showAdminPanel();
-    } else {
-      document.getElementById('adminPwError').style.display = 'block';
-      var input = document.getElementById('adminPwInput');
-      input.value = '';
-      input.focus();
-    }
-  }
-
+  // ---- Admin（仅管理员可进入，入口在导航栏） ----
   function exitAdmin() {
     document.getElementById('adminOverlay').classList.remove('show');
   }
 
-  // ---- Admin: 重置密码 ----
-  var pendingResetUser = null;
+  // ---- Admin: 重置密码（按 user_id 操作） ----
+  var pendingResetUserId = null;
+  var pendingResetUserName = '';
 
-  function confirmResetPw(username) {
-    pendingResetUser = username;
-    document.getElementById('resetPwUser').textContent = username;
+  function confirmResetPw(userId, name) {
+    pendingResetUserId = userId;
+    pendingResetUserName = name;
+    document.getElementById('resetPwUser').textContent = name;
     document.getElementById('resetPwInput').value = '';
     document.getElementById('resetPwOverlay').classList.add('show');
     setTimeout(function() { document.getElementById('resetPwInput').focus(); }, 100);
   }
 
   function closeResetPw() {
-    pendingResetUser = null;
+    pendingResetUserId = null;
+    pendingResetUserName = '';
     document.getElementById('resetPwOverlay').classList.remove('show');
   }
 
   async function executeResetPw() {
-    if (!pendingResetUser) return;
+    if (!pendingResetUserId) return;
     var pw = document.getElementById('resetPwInput').value;
     if (!pw || pw.length < 4) { showToast('密码至少 4 位'); return; }
     try {
       var hash = await hashPassword(pw);
-      var { error } = await db.from('profiles').update({ password_hash: hash }).eq('username', pendingResetUser);
+      var { error } = await db.from('profiles').update({ password_hash: hash }).eq('id', pendingResetUserId);
       if (error) throw error;
-      showToast('已重置「' + pendingResetUser + '」的密码 🔑');
+      showToast('已重置「' + pendingResetUserName + '」的密码 🔑');
       closeResetPw();
       await showAdminPanel();
     } catch(e) {
@@ -3141,10 +3109,14 @@
       if (perr) throw perr;
       var { data: records, error: rerr } = await db.from('water_records').select('*');
       if (rerr) throw rerr;
-      var users = (profiles || []).map(function(p) { return p.username; });
+      var userList = (profiles || []).map(function(p) {
+        return { id: p.id, username: p.username, role: p.role || 'user' };
+      });
       var userData = {};
       (profiles || []).forEach(function(p) {
         var ud = {
+          _userId: p.id,
+          _role: p.role || 'user',
           _goal: p.goal,
           _customCups: p.custom_cups || null,
           _firstLogin: p.first_login,
@@ -3152,7 +3124,7 @@
           _passwordHash: p.password_hash
         };
         (records || []).forEach(function(r) {
-          if (r.username !== p.username) return;
+          if (r.user_id !== p.id) return;
           if (!ud[r.date]) ud[r.date] = [];
           ud[r.date].push({ id: r.id, time: r.time, amount: r.amount });
         });
@@ -3160,9 +3132,9 @@
       });
       var exportObj = {
         _exportTime: new Date().toISOString(),
-        _appVersion: 'v11.0-supabase',
-        _userCount: users.length,
-        users: users,
+        _appVersion: 'v11.6-supabase',
+        _userCount: userList.length,
+        users: userList,
         userData: userData
       };
       var now = new Date();
@@ -3170,7 +3142,7 @@
         now.getFullYear() + pad2(now.getMonth()+1) + pad2(now.getDate()) + '-' +
         pad2(now.getHours()) + pad2(now.getMinutes()) + '.json';
       downloadFile(JSON.stringify(exportObj, null, 2), filename, 'application/json');
-      showToast('已导出 ' + users.length + ' 个用户的全部数据 📤');
+      showToast('已导出 ' + userList.length + ' 个用户的全部数据 📤');
     } catch(e) {
       showToast('导出失败：' + e.message);
     }
@@ -3198,14 +3170,15 @@
         html += '<div>用户数量：<strong>' + userCount + '</strong> 人</div>';
         html += '<div style="margin-top:6px;border-top:1px solid #e0e0e0;padding-top:6px;">用户列表：</div>';
         parsed.users.forEach(function(u) {
-          var ud = parsed.userData[u] || {};
+          var uname = (typeof u === 'string') ? u : (u.username || '?');
+          var ud = parsed.userData[uname] || {};
           var goal = ud._goal || 2000;
           var days = 0;
           Object.keys(ud).forEach(function(k) {
             if (/^\d{4}-\d{2}-\d{2}$/.test(k) && ud[k] && ud[k].length > 0) days++;
           });
           var pwNote = ud._passwordHash ? '' : '（导入后默认密码 water123）';
-          html += '<div>· ' + u + '（目标 ' + goal + 'ml，' + days + ' 天记录）' + pwNote + '</div>';
+          html += '<div>· ' + uname + '（目标 ' + goal + 'ml，' + days + ' 天记录）' + pwNote + '</div>';
         });
         previewEl.innerHTML = html;
         document.getElementById('adminImportOverlay').classList.add('show');
@@ -3229,28 +3202,35 @@
       // 清空现有数据
       var { error: delRec } = await db.from('water_records').delete().neq('id', 0);
       if (delRec) throw delRec;
-      var { error: delPro } = await db.from('profiles').delete().neq('username', '___NONE___');
+      var { error: delPro } = await db.from('profiles').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       if (delPro) throw delPro;
-      // 写入
+      // 写入（兼容旧备份：users 为字符串数组，无 id/role；新备份为对象数组）
       for (var i = 0; i < parsed.users.length; i++) {
         var u = parsed.users[i];
-        var ud = parsed.userData[u] || {};
+        var uname = (typeof u === 'string') ? u : (u.username || '');
+        var uid = (typeof u === 'object' && u.id) ? u.id : undefined;
+        var role = (typeof u === 'object' && u.role) ? u.role : 'user';
+        var ud = parsed.userData[uname] || {};
+        if (!uid && ud._userId) uid = ud._userId;
         var hash = ud._passwordHash || (await hashPassword('water123'));
         var nowISO = new Date().toISOString();
-        var { error: pErr } = await db.from('profiles').insert({
-          username: u,
+        var pRow = {
+          username: uname,
           password_hash: hash,
           goal: ud._goal || 2000,
           custom_cups: ud._customCups || null,
           first_login: ud._firstLogin || nowISO,
           last_active: ud._lastActive || nowISO
-        });
+        };
+        if (uid) pRow.id = uid;
+        var { data: pIns, error: pErr } = await db.from('profiles').insert(pRow).select();
         if (pErr) throw pErr;
+        if (!uid && pIns && pIns[0]) uid = pIns[0].id;
         var rows = [];
         Object.keys(ud).forEach(function(k) {
           if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
           (ud[k] || []).forEach(function(r) {
-            rows.push({ username: u, date: k, time: r.time, amount: r.amount });
+            rows.push({ user_id: uid, date: k, time: r.time, amount: r.amount });
           });
         });
         if (rows.length) {
@@ -3267,34 +3247,40 @@
     }
   }
 
-  // ---- Delete user ----
-  var pendingDeleteUser = null;
+  // ---- Delete user（按 user_id 操作） ----
+  var pendingDeleteUserId = null;
+  var pendingDeleteUserName = '';
 
-  function confirmDeleteUser(username) {
-    pendingDeleteUser = username;
+  function confirmDeleteUser(userId, name) {
+    pendingDeleteUserId = userId;
+    pendingDeleteUserName = name;
     document.getElementById('deleteUserMsg').textContent =
-      '此操作将永久删除用户「' + username + '」及其所有喝水记录，不可撤销。';
+      '此操作将永久删除用户「' + name + '」及其所有喝水记录、帖子、勋章，不可撤销。';
     document.getElementById('deleteUserOverlay').classList.add('show');
   }
 
   function closeDeleteUser() {
-    pendingDeleteUser = null;
+    pendingDeleteUserId = null;
+    pendingDeleteUserName = '';
     document.getElementById('deleteUserOverlay').classList.remove('show');
   }
 
   async function executeDeleteUser() {
-    if (!pendingDeleteUser) return;
-    var username = pendingDeleteUser;
+    if (!pendingDeleteUserId) return;
+    var userId = pendingDeleteUserId;
+    var uname = pendingDeleteUserName;
     try {
-      var { error } = await db.from('profiles').delete().eq('username', username);
+      var { error } = await db.from('profiles').delete().eq('id', userId);
       if (error) throw error;
-      if (currentUser === username) {
+      if (currentUserId === userId) {
         localStorage.removeItem(SESSION_KEY);
         currentUser = null;
+        currentUserId = null;
+        currentUserRole = 'user';
         cache = {};
       }
       closeDeleteUser();
-      showToast('用户「' + username + '」已删除 🗑');
+      showToast('用户「' + uname + '」已删除 🗑');
       await showAdminPanel();
     } catch(e) {
       closeDeleteUser();
@@ -3324,6 +3310,7 @@
       if (perr) throw perr;
       var { data: records, error: rerr } = await db.from('water_records').select('*');
       if (rerr) throw rerr;
+      await loadUserNameMap();
 
       if (!profiles || profiles.length === 0) {
         listEl.innerHTML = '<div class="admin-empty">还没有注册用户 📭</div>';
@@ -3337,19 +3324,22 @@
       var recByUser = {};
       var recByDate = {};
       (records || []).forEach(function(r) {
-        if (!recByUser[r.username]) recByUser[r.username] = [];
-        recByUser[r.username].push(r);
+        if (!recByUser[r.user_id]) recByUser[r.user_id] = [];
+        recByUser[r.user_id].push(r);
         if (!recByDate[r.date]) recByDate[r.date] = [];
         recByDate[r.date].push(r);
       });
 
       var allStats = profiles.map(function(p) {
-        var pr = recByUser[p.username] || [];
+        var pr = recByUser[p.id] || [];
         var days = {};
         var recCount = 0, total = 0;
         pr.forEach(function(r) { recCount++; total += r.amount; days[r.date] = true; });
         return {
-          name: p.username, days: Object.keys(days).length, records: recCount,
+          uid: p.id,
+          name: userNameMap[p.id] || p.username,
+          role: p.role || 'user',
+          days: Object.keys(days).length, records: recCount,
           total: total, goal: p.goal, firstLogin: p.first_login, lastActive: p.last_active
         };
       });
@@ -3374,7 +3364,7 @@
         var ds = dateStr(-i);
         var byDate = recByDate[ds] || [];
         var userSet = {};
-        byDate.forEach(function(r) { userSet[r.username] = true; });
+        byDate.forEach(function(r) { userSet[r.user_id] = true; });
         var count = Object.keys(userSet).length;
         chartDays.push({ date: ds, label: i === 0 ? '今天' : dayLabels[new Date(ds + 'T00:00:00').getDay()], count: count, isToday: i === 0 });
       }
@@ -3393,10 +3383,12 @@
       // User rows
       listEl.innerHTML = allStats.map(function(u) {
         var totalDisplay = u.total >= 1000 ? (u.total / 1000).toFixed(1) + 'L' : u.total + 'ml';
-        var escName = u.name.replace(/'/g, "\\'");
+        var escName = String(u.name).replace(/'/g, "\\'");
+        var escUid = String(u.uid).replace(/'/g, "\\'");
+        var roleTag = u.role === 'admin' ? '<span class="au-role admin">管理员</span>' : '<span class="au-role">用户</span>';
         return '<div class="admin-user-row">' +
           '<div class="au-avatar">' + u.name.charAt(0).toUpperCase() + '</div>' +
-          '<div class="au-name">' + u.name + '</div>' +
+          '<div class="au-name">' + u.name + roleTag + '</div>' +
           '<div class="au-records col-records">' + u.records + ' 条</div>' +
           '<div class="au-days">' + u.days + ' 天</div>' +
           '<div class="au-total">' + totalDisplay + '</div>' +
@@ -3404,8 +3396,8 @@
           '<div class="au-first-login col-first-login">' + formatDateTime(u.firstLogin) + '</div>' +
           '<div class="au-last-active">' + formatDateTime(u.lastActive) + '</div>' +
           '<div class="au-actions">' +
-            '<button class="au-delete-btn" onclick="confirmResetPw(\'' + escName + '\')" title="重置密码">🔑</button>' +
-            '<button class="au-delete-btn" onclick="confirmDeleteUser(\'' + escName + '\')" title="删除用户">🗑</button>' +
+            '<button class="au-delete-btn" onclick="confirmResetPw(\'' + escUid + '\',\'' + escName + '\')" title="重置密码">🔑</button>' +
+            '<button class="au-delete-btn" onclick="confirmDeleteUser(\'' + escUid + '\',\'' + escName + '\')" title="删除用户">🗑</button>' +
           '</div>' +
         '</div>';
       }).join('');
@@ -3439,7 +3431,10 @@
         // 会话失效（用户被删除等），回到登录页
         localStorage.removeItem(SESSION_KEY);
         currentUser = null;
+        currentUserId = null;
+        currentUserRole = 'user';
         cache = {};
+        userNameMap = {};
       }
     }
     document.getElementById('loginOverlay').classList.remove('hidden');

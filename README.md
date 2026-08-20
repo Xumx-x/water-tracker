@@ -16,8 +16,9 @@
 - **注册/登录**：输入用户名 + 密码，首次输入自动创建账号
 - **密码安全**：PBKDF2（10 万次迭代 + 随机盐）哈希存储，不存明文
 - **会话缓存**：同设备下次打开自动登录
-- **数据隔离**：每位用户只能看到自己的喝水数据
-- **后台管理**：登录页底部「🛠 进入后台管理」，可查看所有用户统计、重置密码、删除用户、全量备份/恢复
+- **角色权限**：用户分普通用户 / 管理员（`profiles.role`）。管理员登录后导航栏出现「🛠 后台管理」入口，普通用户不可见；后台支持查看所有用户统计、重置密码、删除用户、全量备份/恢复
+- **数据隔离**：每位用户只能看到自己的喝水数据；内部统一用用户 `id`（uuid 主键）关联，不再使用用户名作外键
+- **防提权**：数据库已撤销匿名/普通角色对 `id`、`role` 两列的写权限
 
 ### 快速记录
 
@@ -144,9 +145,12 @@ Gitee 风格：全局固定导航栏 + 居中内容容器（最大宽度 1200px�
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `username` | text (PK) | 用户名，登录标识 |
+| `id` | uuid (PK) | 用户唯一标识，所有子表用 `user_id` 外键关联 |
+| `username` | text (unique) | 用户名，登录标识 |
+| `role` | text | `user`=普通用户 / `admin`=管理员，默认 `user` |
 | `password_hash` | text | PBKDF2 密码哈希 |
 | `goal` | integer | 每日饮水目标 |
+| `custom_cups` | text | 自定义快速记录按钮（JSON） |
 | `first_login` / `last_active` | timestamptz | 登录时间追踪 |
 
 **water_records 表**（喝水记录）：
@@ -154,7 +158,7 @@ Gitee 风格：全局固定导航栏 + 居中内容容器（最大宽度 1200px�
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `id` | bigint (PK) | 自增主键 |
-| `username` | text (FK) | 所属用户，级联删除 |
+| `user_id` | uuid (FK) | 所属用户，级联删除 |
 | `date` | date | 日期 YYYY-MM-DD |
 | `time` | text | 时刻 HH:MM |
 | `amount` | integer | 毫升数 |
@@ -163,9 +167,9 @@ Gitee 风格：全局固定导航栏 + 居中内容容器（最大宽度 1200px�
 
 | 表 | 关键字段 | 说明 |
 |------|------|------|
-| `forum_posts` | author (FK) / title / content | 帖子，按创建时间倒序 |
-| `forum_likes` | post_id (FK) / username (FK) | 点赞，`unique(post_id, username)` 防止重复点赞 |
-| `forum_comments` | post_id (FK) / username (FK) / content | 评论，级联删除 |
+| `forum_posts` | user_id (FK) / title / content | 帖子，按创建时间倒序 |
+| `forum_likes` | post_id (FK) / user_id (FK) | 点赞，`unique(post_id, user_id)` 防止重复点赞 |
+| `forum_comments` | post_id (FK) / user_id (FK) / content | 评论，级联删除 |
 
 > 注：因 Supabase anon 禁用聚合函数（PGRST123），点赞数 / 评论数由前端拉取明细后 JS 统计。
 
@@ -173,9 +177,9 @@ Gitee 风格：全局固定导航栏 + 居中内容容器（最大宽度 1200px�
 
 | 表 | 关键字段 | 说明 |
 |------|------|------|
-| `honor_boards` | board_type / period / rank / username / amount | 日/周/月 TOP3 榜单快照，`unique(board_type, period, username)` 保证幂等冻结 |
-| `honor_badges` | username / badge_type / count | 勋章计数（daily/weekly/monthly/achieve），PK(username, badge_type) |
-| `honor_achieve` | username / record_date / total / goal | 达标记录，`unique(username, record_date)` 防重复计分 |
+| `honor_boards` | board_type / period / rank / user_id / amount | 日/周/月 TOP3 榜单快照，`unique(board_type, period, user_id)` 保证幂等冻结 |
+| `honor_badges` | user_id / badge_type / count | 勋章计数（daily/weekly/monthly/achieve），PK(user_id, badge_type) |
+| `honor_achieve` | user_id / record_date / total / goal | 达标记录，`unique(user_id, record_date)` 防重复计分 |
 
 - **定时任务**：pg_cron 4 个任务（北京时间 01:00 日榜/周榜/月榜、01:30 达标），均换算为 UTC 排程（`0 17 * * *` 等）；函数内部日期一律按 `Asia/Shanghai` 计算
 - **冻结机制**：生成函数用 `INSERT ... ON CONFLICT DO NOTHING RETURNING`，只有榜单行/达标记录**新增成功**才发勋章 +1 → 历史数据补录不影响已生成结果，任务重跑也不会重复计分
@@ -225,3 +229,4 @@ Gitee 风格：全局固定导航栏 + 居中内容容器（最大宽度 1200px�
 | **v11.3** | **🚰 快速记录自定义**：设置页可配置快捷按钮（最多 8 个，每行 4 个），按用户保存；历史/补录弹窗同步使用自定义配置 |
 | **v11.4** | **💬 喝友论坛**：导航新增论坛页，支持发帖、点赞、评论、关键词查询、一键刷新；帖子可删除（级联清理） |
 | **v11.5** | **🏆 荣誉墙**：导航新增荣誉墙页（首页与历史记录之间）；pg_cron 定时生成日/周/月榜 TOP3 与达标勋章（北京时间 01:00/01:30）；榜单快照冻结，补录旧数据不影响历史结果；页面展示个人 4 类勋章与前 50 名勋章总榜 |
+| **v11.6** | **🔐 用户角色与 id 主键重构**：profiles 新增 `id`(uuid PK) 与 `role`（user/admin）；登录页后台入口移除，管理员登录后导航栏出现「🛠 后台管理」；全部子表（喝水记录/论坛/荣誉墙）改为 `user_id` 外键关联；存量数据自动迁移；撤销匿名对 `id`/`role` 列写权限防提权 |
