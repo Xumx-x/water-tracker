@@ -268,8 +268,16 @@
   .log-empty { text-align: center; color: var(--text-secondary); font-size: 14px; padding: 20px; }
 
   /* Ranking card (right column) */
-  .rank-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .rank-card { position: relative; background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
   .rank-card h3 { font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; }
+  .rank-loading {
+    position: absolute; inset: 0; border-radius: var(--radius); z-index: 6;
+    background: rgba(255, 255, 255, 0.78);
+    display: none; align-items: center; justify-content: center;
+    font-size: 13px; color: var(--primary-dark); font-weight: 600;
+    backdrop-filter: blur(1px);
+  }
+  .rank-loading.show { display: flex; }
   .rank-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
   .rank-tab {
     flex: 1; padding: 7px 0; border: none; border-radius: 10px; cursor: pointer;
@@ -763,6 +771,31 @@
     background: var(--card); border-radius: var(--radius);
     box-shadow: var(--shadow); overflow-x: auto;
   }
+  .admin-toolbar {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 14px 20px 4px;
+  }
+  .admin-search-input {
+    flex: 1; min-width: 180px; border: 2px solid #e3f2fd; border-radius: 10px;
+    padding: 8px 14px; font-size: 13px; outline: none; color: var(--text);
+    transition: border-color 0.2s;
+  }
+  .admin-search-input:focus { border-color: var(--primary); }
+  .admin-sort-select {
+    border: 2px solid #e3f2fd; border-radius: 10px; padding: 7px 10px;
+    font-size: 13px; background: var(--card); color: var(--text); outline: none; cursor: pointer;
+  }
+  .admin-sort-select:focus { border-color: var(--primary); }
+  .admin-total-count { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+  .admin-pagination {
+    display: flex; justify-content: center; align-items: center; gap: 10px; padding: 14px 0 16px;
+  }
+  .admin-pg-btn {
+    border: 1px solid #e3f2fd; background: var(--card); color: var(--primary-dark);
+    border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; transition: background 0.2s;
+  }
+  .admin-pg-btn:hover:not(:disabled) { background: #e3f2fd; }
+  .admin-pg-btn:disabled { opacity: 0.4; cursor: default; }
+  .admin-pg-info { font-size: 13px; color: var(--text-secondary); }
   .admin-table-header {
     display: grid; grid-template-columns: 44px 1fr 70px 70px 80px 70px 110px 110px 90px;
     min-width: 830px;
@@ -1010,6 +1043,7 @@
             <div class="dd-name" id="ddName"></div>
             <div class="dd-sub">当前登录用户</div>
           </div>
+          <button class="dd-item" onclick="event.stopPropagation();goPage('profile')">👤 个人中心</button>
           <button class="dd-item" onclick="event.stopPropagation();goPage('settings')">⚙️ 设置</button>
         </div>
       </div>
@@ -1055,6 +1089,16 @@
       <div class="admin-chart" id="adminChart"></div>
     </div>
     <div class="admin-user-table">
+      <div class="admin-toolbar">
+        <input type="text" id="adminSearchInput" class="admin-search-input" placeholder="按用户名搜索…"
+          oninput="adminSearchChanged()">
+        <select id="adminSortSelect" class="admin-sort-select" onchange="adminSortChanged()">
+          <option value="lastActive">按最后活跃</option>
+          <option value="created">按创建时间</option>
+          <option value="name">按名称</option>
+        </select>
+        <span class="admin-total-count" id="adminCount"></span>
+      </div>
       <div class="admin-table-header">
         <span></span>
         <span>用户名</span>
@@ -1067,6 +1111,21 @@
         <span>操作</span>
       </div>
       <div id="adminUserList"></div>
+      <div class="admin-pagination" id="adminPagination"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Rename user modal -->
+<div class="modal-overlay" id="renameUserOverlay" style="z-index: 6000;">
+  <div class="modal">
+    <h3>✏️ 修改用户名</h3>
+    <p>为用户「<span id="renameUserOldName"></span>」设置新用户名（2-20 位）</p>
+    <input type="text" id="renameUserInput" class="forum-input" style="text-align: left;" placeholder="新用户名" maxlength="20"
+      onkeydown="if(event.key==='Enter')executeRenameUser()">
+    <div class="actions">
+      <button class="btn btn-cancel" onclick="closeRenameUser()">取消</button>
+      <button class="btn btn-confirm" style="background: var(--primary);" onclick="executeRenameUser()">确认修改</button>
     </div>
   </div>
 </div>
@@ -1196,6 +1255,7 @@
       <div class="rank-list" id="rankList">
         <div class="rank-empty">加载中…</div>
       </div>
+      <div class="rank-loading" id="rankLoading">⏳ 加载中…</div>
     </div>
 
     <div class="cal-card">
@@ -1323,6 +1383,42 @@
   <div class="forum-list" id="forumPostList"></div>
 </section>
 
+<!-- ===== 个人中心页 ===== -->
+<section class="page" id="page-profile">
+  <div class="page-head">
+    <div>
+      <h2>👤 个人中心</h2>
+      <p>管理你的账号信息：修改用户名与登录密码</p>
+    </div>
+  </div>
+
+  <div class="settings-grid">
+    <div class="settings-card">
+      <h3>✏️ 修改用户名</h3>
+      <p class="settings-desc">修改后下次登录请使用新用户名（2-20 位）。</p>
+      <div class="pw-form">
+        <input type="text" id="profileCurName" class="pw-input" readonly title="当前用户名">
+        <input type="text" id="profileUsername" class="pw-input" placeholder="新用户名（2-20 位）" maxlength="20"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();changeUsername();}">
+        <button class="btn-primary" onclick="changeUsername()">💾 保存用户名</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3>🔒 修改密码</h3>
+      <p class="settings-desc">定期修改密码可提升账号安全。新密码至少 6 位。</p>
+      <div class="pw-form">
+        <input type="password" id="pwOld" class="pw-input" placeholder="当前密码" autocomplete="current-password">
+        <input type="password" id="pwNew" class="pw-input" placeholder="新密码（至少 6 位）" autocomplete="new-password"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();changePassword();}">
+        <input type="password" id="pwNew2" class="pw-input" placeholder="确认新密码" autocomplete="new-password"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();changePassword();}">
+        <button class="btn-primary" onclick="changePassword()">🔑 确认修改</button>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ===== 设置页 ===== -->
 <section class="page" id="page-settings">
   <div class="page-head">
@@ -1343,19 +1439,6 @@
           title="可直接输入目标值（500-10000ml）">
         <span class="goal-unit">ml</span>
         <button onclick="changeGoal(100)">+</button>
-      </div>
-    </div>
-
-    <div class="settings-card">
-      <h3>🔒 修改密码</h3>
-      <p class="settings-desc">定期修改密码可提升账号安全。新密码至少 6 位。</p>
-      <div class="pw-form">
-        <input type="password" id="pwOld" class="pw-input" placeholder="当前密码" autocomplete="current-password">
-        <input type="password" id="pwNew" class="pw-input" placeholder="新密码（至少 6 位）" autocomplete="new-password"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();changePassword();}">
-        <input type="password" id="pwNew2" class="pw-input" placeholder="确认新密码" autocomplete="new-password"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();changePassword();}">
-        <button class="btn-primary" onclick="changePassword()">🔑 确认修改</button>
       </div>
     </div>
 
@@ -1900,6 +1983,44 @@
       showToast('修改失败：' + e.message);
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = '🔑 确认修改'; }
+    }
+  }
+
+  // ---- 个人中心：修改用户名 ----
+  function syncProfileInputs() {
+    var cur = document.getElementById('profileCurName');
+    if (cur) cur.value = currentUser ? '当前用户名：' + currentUser : '';
+    var el = document.getElementById('profileUsername');
+    if (el) el.value = '';
+  }
+
+  async function changeUsername() {
+    if (!currentUserId) return;
+    var newName = document.getElementById('profileUsername').value.trim();
+    if (!newName) { showToast('请输入新用户名'); return; }
+    if (newName.length < 2 || newName.length > 20) { showToast('用户名长度需为 2-20 位'); return; }
+    if (newName === currentUser) { showToast('新用户名与当前相同'); return; }
+    var btn = document.querySelector('#page-profile .settings-card .btn-primary');
+    if (btn) { btn.disabled = true; btn.textContent = '保存中…'; }
+    try {
+      var client = initDb();
+      var { error } = await client.from('profiles').update({ username: newName }).eq('id', currentUserId);
+      if (error) {
+        if (error.code === '23505') { showToast('该用户名已被占用，请换一个'); return; }
+        throw error;
+      }
+      currentUser = newName;
+      localStorage.setItem(SESSION_KEY, newName);
+      if (userNameMap) userNameMap[currentUserId] = newName;
+      syncProfileInputs();
+      renderUserBadge();
+      renderAll();
+      loadRanking();
+      showToast('用户名已更新为「' + newName + '」✅');
+    } catch(e) {
+      showToast('修改失败：' + e.message);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '💾 保存用户名'; }
     }
   }
 
@@ -2592,6 +2713,11 @@
     return v >= 1000 ? (v / 1000).toFixed(1) + 'L' : v + 'ml';
   }
 
+  function setRankLoading(on) {
+    var el = document.getElementById('rankLoading');
+    if (el) el.classList.toggle('show', !!on);
+  }
+
   async function loadRanking(range) {
     if (!currentUser || !isSupabaseConfigured()) return;
     if (range) rankState.range = range;
@@ -2603,8 +2729,8 @@
     var rangeLabel = dates.start === dates.end ? dates.start : dates.start + ' ~ ' + dates.end;
     document.getElementById('rankRange').textContent = '统计区间：' + rangeLabel;
     var listEl = document.getElementById('rankList');
-    listEl.innerHTML = '<div class="rank-empty">加载中…</div>';
     var myReqId = ++rankState.reqId;
+    setRankLoading(true); // 遮罩加载，不清空已有数据
     try {
       var client = initDb();
       // 拉取该时段明细（仅三列），前端聚合分组（Supabase anon 默认禁用数据库聚合函数）
@@ -2631,6 +2757,8 @@
       if (rankState.reqId !== myReqId) return;
       listEl.innerHTML = '<div class="rank-empty">加载失败：' + escHtml(e.message || e) +
         '<br><button class="rank-retry" onclick="loadRanking()">重试</button></div>';
+    } finally {
+      if (rankState.reqId === myReqId) setRankLoading(false);
     }
   }
 
@@ -2989,8 +3117,8 @@
     }).join('');
   }
 
-  // ---- 路由（hash SPA：#/home · #/honor · #/history · #/forum · #/settings） ----
-  var PAGES = ['home', 'honor', 'history', 'forum', 'settings'];
+  // ---- 路由（hash SPA：#/home · #/honor · #/history · #/forum · #/profile · #/settings） ----
+  var PAGES = ['home', 'honor', 'history', 'forum', 'profile', 'settings'];
   function currentPage() {
     var h = (location.hash || '').replace(/^#\/?/, '');
     return PAGES.indexOf(h) >= 0 ? h : 'home';
@@ -3013,6 +3141,7 @@
     if (page === 'honor') renderHonorPage();
     if (page === 'history') renderHistory();
     if (page === 'forum') renderForumPage();
+    if (page === 'profile') syncProfileInputs();
     if (page === 'settings') {
       syncGoalInput();
       renderCupsEditor();
@@ -3297,6 +3426,8 @@
   }
 
   // ---- Admin panel（数据来自 Supabase 聚合） ----
+  var adminState = { stats: [], page: 1, pageSize: 20, keyword: '', sort: 'lastActive' };
+
   async function showAdminPanel() {
     if (!db) { showToast('请先配置 Supabase'); return; }
     var listEl = document.getElementById('adminUserList');
@@ -3340,9 +3471,12 @@
           name: userNameMap[p.id] || p.username,
           role: p.role || 'user',
           days: Object.keys(days).length, records: recCount,
-          total: total, goal: p.goal, firstLogin: p.first_login, lastActive: p.last_active
+          total: total, goal: p.goal, firstLogin: p.first_login, lastActive: p.last_active,
+          created: p.created_at
         };
       });
+      adminState.stats = allStats;
+      adminState.page = 1;
 
       // Summary
       var totalUsers = allStats.length;
@@ -3380,31 +3514,136 @@
         '</div>';
       }).join('');
 
-      // User rows
-      listEl.innerHTML = allStats.map(function(u) {
-        var totalDisplay = u.total >= 1000 ? (u.total / 1000).toFixed(1) + 'L' : u.total + 'ml';
-        var escName = String(u.name).replace(/'/g, "\\'");
-        var escUid = String(u.uid).replace(/'/g, "\\'");
-        var roleTag = u.role === 'admin' ? '<span class="au-role admin">管理员</span>' : '<span class="au-role">用户</span>';
-        return '<div class="admin-user-row">' +
-          '<div class="au-avatar">' + u.name.charAt(0).toUpperCase() + '</div>' +
-          '<div class="au-name">' + u.name + roleTag + '</div>' +
-          '<div class="au-records col-records">' + u.records + ' 条</div>' +
-          '<div class="au-days">' + u.days + ' 天</div>' +
-          '<div class="au-total">' + totalDisplay + '</div>' +
-          '<div class="au-goal col-goal">' + u.goal + 'ml</div>' +
-          '<div class="au-first-login col-first-login">' + formatDateTime(u.firstLogin) + '</div>' +
-          '<div class="au-last-active">' + formatDateTime(u.lastActive) + '</div>' +
-          '<div class="au-actions">' +
-            '<button class="au-delete-btn" onclick="confirmResetPw(\'' + escUid + '\',\'' + escName + '\')" title="重置密码">🔑</button>' +
-            '<button class="au-delete-btn" onclick="confirmDeleteUser(\'' + escUid + '\',\'' + escName + '\')" title="删除用户">🗑</button>' +
-          '</div>' +
-        '</div>';
-      }).join('');
+      // User rows（分页 + 搜索 + 排序）
+      renderAdminUserList();
 
       document.getElementById('adminOverlay').classList.add('show');
     } catch(e) {
       showToast('加载失败：' + e.message);
+    }
+  }
+
+  // ---- Admin: 用户列表（前端分页 / 搜索 / 排序） ----
+  function adminFiltered() {
+    var kw = adminState.keyword.trim().toLowerCase();
+    var list = adminState.stats.filter(function(u) {
+      if (!kw) return true;
+      return (u.name || '').toLowerCase().indexOf(kw) >= 0;
+    });
+    var sort = adminState.sort;
+    list.sort(function(a, b) {
+      if (sort === 'created') return (b.created || '') < (a.created || '') ? -1 : 1;
+      if (sort === 'name') return (a.name || '') < (b.name || '') ? -1 : (a.name > b.name ? 1 : 0);
+      return (b.lastActive || '') < (a.lastActive || '') ? -1 : 1;
+    });
+    return list;
+  }
+
+  function renderAdminUserList() {
+    var listEl = document.getElementById('adminUserList');
+    var countEl = document.getElementById('adminCount');
+    var pgEl = document.getElementById('adminPagination');
+    if (!listEl) return;
+    var list = adminFiltered();
+    var total = list.length;
+    var totalPages = Math.max(1, Math.ceil(total / adminState.pageSize));
+    if (adminState.page > totalPages) adminState.page = totalPages;
+    var pageList = list.slice((adminState.page - 1) * adminState.pageSize, adminState.page * adminState.pageSize);
+
+    if (countEl) countEl.textContent = '共 ' + total + ' 人';
+    if (total === 0) {
+      listEl.innerHTML = '<div class="admin-empty">' + (adminState.keyword ? '未找到匹配的用户' : '还没有注册用户 📭') + '</div>';
+      if (pgEl) pgEl.innerHTML = '';
+      return;
+    }
+
+    listEl.innerHTML = pageList.map(function(u) {
+      var totalDisplay = u.total >= 1000 ? (u.total / 1000).toFixed(1) + 'L' : u.total + 'ml';
+      var escName = String(u.name).replace(/'/g, "\\'");
+      var escUid = String(u.uid).replace(/'/g, "\\'");
+      var roleTag = u.role === 'admin' ? '<span class="au-role admin">管理员</span>' : '<span class="au-role">用户</span>';
+      return '<div class="admin-user-row">' +
+        '<div class="au-avatar">' + u.name.charAt(0).toUpperCase() + '</div>' +
+        '<div class="au-name">' + u.name + roleTag + '</div>' +
+        '<div class="au-records col-records">' + u.records + ' 条</div>' +
+        '<div class="au-days">' + u.days + ' 天</div>' +
+        '<div class="au-total">' + totalDisplay + '</div>' +
+        '<div class="au-goal col-goal">' + u.goal + 'ml</div>' +
+        '<div class="au-first-login col-first-login">' + formatDateTime(u.firstLogin) + '</div>' +
+        '<div class="au-last-active">' + formatDateTime(u.lastActive) + '</div>' +
+        '<div class="au-actions">' +
+          '<button class="au-delete-btn" onclick="confirmRenameUser(\'' + escUid + '\',\'' + escName + '\')" title="修改用户名">✏️</button>' +
+          '<button class="au-delete-btn" onclick="confirmResetPw(\'' + escUid + '\',\'' + escName + '\')" title="重置密码">🔑</button>' +
+          '<button class="au-delete-btn" onclick="confirmDeleteUser(\'' + escUid + '\',\'' + escName + '\')" title="删除用户">🗑</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    if (pgEl) {
+      if (totalPages <= 1) { pgEl.innerHTML = ''; return; }
+      pgEl.innerHTML =
+        '<button class="admin-pg-btn" onclick="adminGoPage(' + (adminState.page - 1) + ')"' + (adminState.page <= 1 ? ' disabled' : '') + '>‹ 上一页</button>' +
+        '<span class="admin-pg-info">' + adminState.page + ' / ' + totalPages + '</span>' +
+        '<button class="admin-pg-btn" onclick="adminGoPage(' + (adminState.page + 1) + ')"' + (adminState.page >= totalPages ? ' disabled' : '') + '>下一页 ›</button>';
+    }
+  }
+
+  function adminGoPage(p) {
+    if (p < 1) return;
+    adminState.page = p;
+    renderAdminUserList();
+  }
+  function adminSearchChanged() {
+    adminState.keyword = document.getElementById('adminSearchInput').value;
+    adminState.page = 1;
+    renderAdminUserList();
+  }
+  function adminSortChanged() {
+    adminState.sort = document.getElementById('adminSortSelect').value;
+    adminState.page = 1;
+    renderAdminUserList();
+  }
+
+  // ---- Admin: 修改用户名 ----
+  var pendingRenameUserId = null;
+  var pendingRenameUserName = '';
+
+  function confirmRenameUser(uid, name) {
+    pendingRenameUserId = uid;
+    pendingRenameUserName = name;
+    document.getElementById('renameUserOldName').textContent = name;
+    document.getElementById('renameUserInput').value = '';
+    document.getElementById('renameUserOverlay').classList.add('show');
+    setTimeout(function() { document.getElementById('renameUserInput').focus(); }, 100);
+  }
+  function closeRenameUser() {
+    pendingRenameUserId = null;
+    pendingRenameUserName = '';
+    document.getElementById('renameUserOverlay').classList.remove('show');
+  }
+  async function executeRenameUser() {
+    if (!pendingRenameUserId) return;
+    var newName = document.getElementById('renameUserInput').value.trim();
+    if (!newName || newName.length < 2 || newName.length > 20) { showToast('用户名长度需为 2-20 位'); return; }
+    if (newName === pendingRenameUserName) { showToast('新用户名与当前相同'); return; }
+    try {
+      var { error } = await db.from('profiles').update({ username: newName }).eq('id', pendingRenameUserId);
+      if (error) {
+        if (error.code === '23505') { showToast('该用户名已被占用，请换一个'); return; }
+        throw error;
+      }
+      if (userNameMap) userNameMap[pendingRenameUserId] = newName;
+      if (currentUserId === pendingRenameUserId) {
+        // 改的是自己：同步会话与导航栏
+        currentUser = newName;
+        localStorage.setItem(SESSION_KEY, newName);
+        renderUserBadge();
+      }
+      closeRenameUser();
+      showToast('用户名已修改为「' + newName + '」✅');
+      await showAdminPanel();
+    } catch(e) {
+      showToast('修改失败：' + e.message);
     }
   }
 
@@ -3418,14 +3657,15 @@
     initDb();
     var saved = localStorage.getItem(SESSION_KEY);
     if (saved) {
+      // 先隐藏登录层，避免刷新时闪现登录页；加载失败再恢复显示
+      document.getElementById('loginOverlay').classList.add('hidden');
       try {
         await loadUserData(saved);
-        document.getElementById('loginOverlay').classList.add('hidden');
         renderUserBadge();
         calInit();
         renderAll();
         loadRanking();
-        renderRoute();
+        renderRoute(); // 按当前 hash 停留对应页面
         return;
       } catch(e) {
         // 会话失效（用户被删除等），回到登录页
@@ -3435,6 +3675,7 @@
         currentUserRole = 'user';
         cache = {};
         userNameMap = {};
+        document.getElementById('loginOverlay').classList.remove('hidden');
       }
     }
     document.getElementById('loginOverlay').classList.remove('hidden');
