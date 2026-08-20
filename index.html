@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💧 喝了么</title>
+<script>
+  /* ============================================================
+   * 喝了么 · 云端版（Vercel + Supabase）
+   * ============================================================
+   * 部署前必填（见项目根目录 DEPLOY.md）：
+   *   1. SUPABASE_URL      在 Supabase 控制台 Project Settings → API → Project URL
+   *   2. SUPABASE_ANON_KEY 同上页面 → anon public key
+   * 可选：
+   *   ADMIN_PASSWORD       后台管理密码（仅前端展示层控制）
+   * ============================================================ */
+  var SUPABASE_URL = 'https://ahjyvrqaxsusqffavdrv.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoanl2cnFheHN1c3FmZmF2ZHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNzA4ODcsImV4cCI6MjEwMjc0Njg4N30.aEGhBucjWz8EFP-y2BCdfNQycqS4xIMQ8LoJIxeyqWA';
+  var ADMIN_PASSWORD = 'water123';
+</script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --card: #ffffff;
+    --primary: #2196F3;
+    --primary-light: #64B5F6;
+    --primary-dark: #1565C0;
+    --accent: #00BCD4;
+    --text: #1a1a2e;
+    --text-secondary: #6b7280;
+    --success: #4CAF50;
+    --danger: #ef5350;
+    --warning: #FF9800;
+    --shadow: 0 2px 12px rgba(33, 150, 243, 0.1);
+    --radius: 16px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f0f6ff 50%, #e8f5e9 100%);
+    min-height: 100vh;
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  /* Two-column layout */
+  .layout {
+    max-width: 1100px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .col-left, .col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .header {
+    text-align: center;
+    padding: 20px 0 8px;
+    position: relative;
+    grid-column: 1 / -1;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  .header-actions {
+    position: absolute;
+    top: 20px;
+    right: 0;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .icon-btn {
+    width: 34px; height: 34px; border: none; background: var(--card);
+    border-radius: 10px; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    transition: transform 0.15s; position: relative;
+  }
+  .icon-btn:hover { transform: scale(1.1); }
+
+  .status-bar {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; font-size: 12px; color: var(--text-secondary); margin-top: 6px;
+  }
+  .status-bar .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .status-bar .dot.cloud { background: var(--success); }
+
+  .progress-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 28px 24px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+  .ring-container { position: relative; width: 180px; height: 180px; }
+  .ring-svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: #e3f2fd; stroke-width: 14; }
+  .ring-fill {
+    fill: none; stroke: url(#ringGradient);
+    stroke-width: 14; stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+  .ring-center {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); text-align: center;
+  }
+  .ring-center .amount { font-size: 36px; font-weight: 800; color: var(--primary-dark); }
+  .ring-center .unit { font-size: 14px; color: var(--text-secondary); }
+  .ring-center .goal-text { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+  .progress-info {
+    display: flex; gap: 24px; width: 100%;
+    justify-content: center; padding-top: 8px;
+    border-top: 1px solid #f0f0f0;
+  }
+  .progress-info .item { text-align: center; }
+  .progress-info .item .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .progress-info .item .value { font-size: 18px; font-weight: 700; color: var(--text); }
+  .progress-info .item .value.complete { color: var(--success); }
+
+  .quick-add-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .quick-add-card h3 { font-size: 14px; color: var(--text-secondary); margin-bottom: 14px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
+  .quick-add-card h3 .history-btn {
+    font-size: 12px; color: var(--primary); cursor: pointer;
+    font-weight: 500; background: none; border: none;
+    transition: opacity 0.2s;
+  }
+  .quick-add-card h3 .history-btn:hover { opacity: 0.7; }
+  .add-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .add-btn {
+    border: none; background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: var(--primary-dark); border-radius: 12px;
+    padding: 14px 8px; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .add-btn:hover {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white; transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  }
+  .add-btn:active { transform: translateY(0); }
+  .add-btn .icon { font-size: 22px; }
+  .add-btn .ml { font-size: 12px; opacity: 0.8; }
+
+  .custom-add { display: flex; gap: 8px; margin-top: 12px; }
+  .custom-add input {
+    flex: 1; border: 2px solid #e3f2fd; border-radius: 10px;
+    padding: 10px 14px; font-size: 14px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .custom-add input:focus { border-color: var(--primary-light); }
+  .custom-add button {
+    border: none; background: var(--primary); color: white;
+    border-radius: 10px; padding: 10px 18px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .custom-add button:hover { background: var(--primary-dark); }
+
+  .log-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .log-card h3 {
+    font-size: 14px; color: var(--text-secondary);
+    margin-bottom: 14px; font-weight: 500;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .log-card h3 .clear-btn {
+    font-size: 12px; color: var(--danger); cursor: pointer;
+    font-weight: 400; background: none; border: none;
+    transition: opacity 0.2s;
+  }
+  .log-card h3 .clear-btn:hover { opacity: 0.7; }
+  .log-list { display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; }
+  .log-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: #f5faff; border-radius: 10px;
+    transition: background 0.2s;
+  }
+  .log-item:hover { background: #e3f2fd; }
+  .log-item .left { display: flex; align-items: center; gap: 10px; }
+  .log-item .cup-icon { font-size: 20px; }
+  .log-item .time { font-size: 13px; color: var(--text-secondary); }
+  .log-item .amount-text { font-weight: 600; color: var(--primary-dark); }
+  .log-item .actions { display: flex; align-items: center; gap: 8px; }
+  .log-item .edit-btn, .log-item .delete-btn, .log-item .save-btn, .log-item .cancel-btn {
+    background: none; border: none; cursor: pointer; font-size: 16px;
+    transition: color 0.2s; padding: 2px 4px;
+  }
+  .log-item .edit-btn { color: #999; }
+  .log-item .edit-btn:hover { color: var(--primary); }
+  .log-item .delete-btn { color: #ccc; }
+  .log-item .delete-btn:hover { color: var(--danger); }
+  .log-item .save-btn { color: var(--success); font-size: 15px; }
+  .log-item .cancel-btn { color: var(--danger); font-size: 15px; }
+  .log-item .edit-input {
+    width: 64px; border: 2px solid var(--primary-light); border-radius: 6px;
+    padding: 4px 8px; font-size: 14px; outline: none; text-align: right;
+  }
+  .log-empty { text-align: center; color: var(--text-secondary); font-size: 14px; padding: 20px; }
+
+  .goal-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 16px 20px; box-shadow: var(--shadow);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .goal-card .label { font-size: 14px; color: var(--text-secondary); }
+  .goal-card .goal-control { display: flex; align-items: center; gap: 8px; }
+  .goal-card button {
+    width: 30px; height: 30px; border: none; background: #e3f2fd;
+    color: var(--primary-dark); border-radius: 8px; font-size: 18px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .goal-card button:hover { background: #bbdefb; }
+  .goal-card .goal-value {
+    font-size: 18px; font-weight: 700; color: var(--primary-dark);
+    min-width: 60px; text-align: center;
+  }
+
+  /* Chart card (right column) */
+  .chart-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .chart-card h3 {
+    font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; font-weight: 500;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .chart-card h3 .history-btn {
+    font-size: 12px; color: var(--primary); cursor: pointer;
+    font-weight: 500; background: none; border: none;
+    transition: opacity 0.2s;
+  }
+  .chart-card h3 .history-btn:hover { opacity: 0.7; }
+  .chart {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    height: 140px; gap: 6px; padding-bottom: 24px; position: relative;
+  }
+  .chart::after {
+    content: ''; position: absolute; bottom: 24px; left: 0; right: 0;
+    height: 1px; background: #eee;
+  }
+  .bar-group {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 6px; height: 100%; justify-content: flex-end;
+  }
+  .bar {
+    width: 70%; max-width: 36px; border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, var(--primary-light), var(--primary));
+    transition: height 0.5s ease; min-height: 2px;
+  }
+  .bar.today { background: linear-gradient(180deg, var(--accent), var(--primary-dark)); }
+  .bar.complete { background: linear-gradient(180deg, #81C784, var(--success)); }
+  .bar-label { font-size: 11px; color: var(--text-secondary); }
+  .bar-amount { font-size: 10px; color: var(--text-secondary); margin-bottom: 2px; }
+
+  /* Calendar card (right column) */
+  .cal-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .cal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .cal-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .cal-nav { display: flex; gap: 8px; align-items: center; }
+  .cal-nav button {
+    width: 30px; height: 30px; border: none; background: #e3f2fd;
+    color: var(--primary-dark); border-radius: 8px; font-size: 16px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .cal-nav button:hover { background: #bbdefb; }
+  .cal-nav .cal-today-btn {
+    width: auto; padding: 0 12px; font-size: 12px; font-weight: 600;
+  }
+
+  .cal-stats {
+    display: flex; gap: 16px; margin-bottom: 14px;
+    padding: 10px 14px; background: #f5faff; border-radius: 10px;
+  }
+  .cal-stat { text-align: center; flex: 1; }
+  .cal-stat .cs-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+  .cal-stat .cs-value { font-size: 16px; font-weight: 700; color: var(--primary-dark); }
+  .cal-stat .cs-value.complete { color: var(--success); }
+
+  .cal-weekdays {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    margin-bottom: 6px;
+  }
+  .cal-weekday {
+    text-align: center; font-size: 12px; color: var(--text-secondary);
+    padding: 4px 0; font-weight: 500;
+  }
+
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+  }
+  .cal-day {
+    aspect-ratio: 1; border-radius: 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 13px; color: var(--text);
+    transition: all 0.2s; cursor: default;
+    position: relative; min-height: 44px;
+  }
+  .cal-day.empty { background: transparent; cursor: default; }
+  .cal-day.has-data {
+    background: linear-gradient(135deg, #bbdefb, #e3f2fd);
+    color: var(--primary-dark); font-weight: 600;
+  }
+  .cal-day.has-data.good {
+    background: linear-gradient(135deg, #81C784, #c8e6c9);
+    color: #2e7d32;
+  }
+  .cal-day.has-data.great {
+    background: linear-gradient(135deg, var(--success), #81C784);
+    color: white;
+  }
+  .cal-day.today {
+    border: 2px solid var(--accent);
+  }
+  .cal-day.future { opacity: 0.35; }
+  .cal-day .cd-num { font-size: 13px; line-height: 1; }
+  .cal-day .cd-amount { font-size: 10px; margin-top: 2px; opacity: 0.9; }
+  .cal-day:hover:not(.empty) { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+
+  .cal-legend {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    margin-top: 14px; flex-wrap: wrap;
+  }
+  .cal-legend-item {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--text-secondary);
+  }
+  .cal-legend-box {
+    width: 14px; height: 14px; border-radius: 4px;
+  }
+  .cal-legend-box.l-none { background: #f0f0f0; }
+  .cal-legend-box.l-some { background: linear-gradient(135deg, #bbdefb, #e3f2fd); }
+  .cal-legend-box.l-good { background: linear-gradient(135deg, #81C784, #c8e6c9); }
+  .cal-legend-box.l-great { background: linear-gradient(135deg, var(--success), #81C784); }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--primary-dark); color: white;
+    padding: 12px 24px; border-radius: 12px; font-size: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    opacity: 0; transition: all 0.3s ease;
+    z-index: 1000; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+    display: none; align-items: center; justify-content: center; z-index: 2000;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card); border-radius: var(--radius);
+    padding: 28px 24px; max-width: 400px; width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2); text-align: center;
+  }
+  .modal h3 { font-size: 18px; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+  .modal .actions { display: flex; gap: 10px; justify-content: center; }
+  .modal .btn {
+    border: none; border-radius: 10px; padding: 10px 24px;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+  }
+  .modal .btn-confirm { background: var(--danger); color: white; }
+  .modal .btn-confirm:hover { background: #d32f2f; }
+  .modal .btn-cancel { background: #f0f0f0; color: var(--text-secondary); }
+  .modal .btn-cancel:hover { background: #e0e0e0; }
+  .modal input[type="password"] {
+    width: 100%; border: 2px solid #e3f2fd; border-radius: 10px;
+    padding: 12px 16px; font-size: 15px; outline: none; text-align: center;
+    transition: border-color 0.2s; margin-bottom: 16px;
+  }
+  .modal input[type="password"]:focus { border-color: var(--primary); }
+
+  /* History modal */
+  .history-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    display: none; align-items: center; justify-content: center; z-index: 2000;
+    padding: 20px;
+  }
+  .history-modal-overlay.show { display: flex; }
+  .history-modal {
+    background: var(--card); border-radius: var(--radius);
+    max-width: 560px; width: 95%; max-height: 85vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .history-modal .hm-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 24px 12px; border-bottom: 1px solid #f0f0f0;
+  }
+  .history-modal .hm-header h3 { font-size: 18px; font-weight: 700; }
+  .history-modal .hm-close {
+    background: none; border: none; font-size: 20px; color: var(--text-secondary);
+    cursor: pointer; padding: 4px 8px;
+  }
+  .history-modal .hm-close:hover { color: var(--danger); }
+
+  .hm-filters {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    padding: 12px 24px 8px;
+  }
+  .hm-filter-btn {
+    border: 1.5px solid #e3f2fd; background: var(--card); color: var(--text-secondary);
+    border-radius: 8px; padding: 5px 12px; font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .hm-filter-btn:hover { border-color: var(--primary-light); }
+  .hm-filter-btn.active {
+    background: var(--primary); color: white; border-color: var(--primary);
+  }
+  .hm-date-range {
+    display: none; align-items: center; gap: 8px;
+    padding: 0 24px 10px; flex-wrap: wrap;
+  }
+  .hm-date-range.show { display: flex; }
+  .hm-date-range input[type="date"] {
+    border: 1.5px solid #e3f2fd; border-radius: 8px;
+    padding: 5px 10px; font-size: 13px; outline: none; color: var(--text);
+  }
+  .hm-date-range input[type="date"]:focus { border-color: var(--primary-light); }
+  .hm-date-range button {
+    border: none; background: var(--primary); color: white;
+    border-radius: 8px; padding: 5px 14px; font-size: 13px;
+    cursor: pointer; font-weight: 600;
+  }
+  .hm-date-range button:hover { background: var(--primary-dark); }
+  .hm-date-range .range-sep { color: var(--text-secondary); font-size: 13px; }
+
+  .history-modal .hm-body {
+    overflow-y: auto; padding: 8px 24px 12px; flex: 1;
+  }
+
+  .day-row {
+    border: 1px solid #f0f0f0; border-radius: 10px;
+    margin-bottom: 8px; overflow: hidden;
+  }
+  .day-row-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; cursor: pointer; user-select: none;
+    background: #fafcff; transition: background 0.2s;
+  }
+  .day-row-header:hover { background: #e3f2fd; }
+  .day-row-header .dr-left { display: flex; align-items: center; gap: 8px; }
+  .day-row-header .dr-arrow {
+    font-size: 12px; color: var(--text-secondary);
+    transition: transform 0.2s; display: inline-block;
+  }
+  .day-row.expanded .dr-arrow { transform: rotate(90deg); }
+  .day-row-header .dr-date { font-size: 15px; font-weight: 600; color: var(--text); }
+  .day-row-header .dr-right { display: flex; align-items: center; gap: 10px; }
+  .day-row-header .dr-count { font-size: 12px; color: var(--text-secondary); }
+  .day-row-header .dr-total { font-size: 15px; font-weight: 700; color: var(--primary-dark); }
+  .day-row-header .dr-total.complete { color: var(--success); }
+
+  .day-records { display: none; padding: 4px 14px 10px 14px; }
+  .day-row.expanded .day-records { display: block; }
+  .day-record {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 10px; margin: 3px 0; background: #f5faff; border-radius: 8px;
+    font-size: 13px;
+  }
+  .day-record .dr-rec-time { color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+  .day-record .dr-rec-amount { font-weight: 600; color: var(--primary-dark); }
+
+  .history-empty { text-align: center; color: var(--text-secondary); padding: 40px 0; font-size: 14px; }
+
+  .hm-pagination {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 24px 16px; border-top: 1px solid #f0f0f0;
+    flex-wrap: wrap;
+  }
+  .hm-pagination button {
+    border: 1.5px solid #e3f2fd; background: var(--card); color: var(--primary-dark);
+    border-radius: 8px; padding: 5px 12px; font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .hm-pagination button:hover:not(:disabled) { border-color: var(--primary); background: #e3f2fd; }
+  .hm-pagination button:disabled { opacity: 0.4; cursor: default; }
+  .hm-pagination .page-info { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+  .hm-pagination .page-input {
+    width: 42px; text-align: center; border: 1.5px solid #e3f2fd;
+    border-radius: 6px; padding: 3px 4px; font-size: 13px; outline: none; color: var(--text);
+  }
+  .hm-pagination .page-input:focus { border-color: var(--primary-light); }
+  .hm-pagination .size-select {
+    border: 1.5px solid #e3f2fd; border-radius: 6px; padding: 3px 6px;
+    font-size: 12px; color: var(--text-secondary); outline: none; cursor: pointer;
+  }
+  .hm-pagination .total-info { font-size: 12px; color: var(--text-secondary); }
+
+  /* Login overlay */
+  .login-overlay {
+    position: fixed; inset: 0; background: linear-gradient(135deg, #e3f2fd 0%, #f0f6ff 50%, #e8f5e9 100%);
+    display: flex; align-items: center; justify-content: center; z-index: 5000;
+  }
+  .login-overlay.hidden { display: none; }
+  .login-box {
+    background: var(--card); border-radius: 24px; padding: 40px 36px;
+    max-width: 380px; width: 90%; box-shadow: 0 12px 48px rgba(33, 150, 243, 0.2);
+    text-align: center;
+  }
+  .login-box .login-icon { font-size: 48px; margin-bottom: 12px; }
+  .login-box h2 {
+    font-size: 24px; font-weight: 700; margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .login-box .login-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
+  .login-box input {
+    width: 100%; border: 2px solid #e3f2fd; border-radius: 12px;
+    padding: 14px 16px; font-size: 16px; outline: none; text-align: center;
+    transition: border-color 0.2s; margin-bottom: 12px;
+  }
+  .login-box input:focus { border-color: var(--primary); }
+  .login-box .login-btn {
+    width: 100%; border: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 600;
+    cursor: pointer; transition: transform 0.15s;
+  }
+  .login-box .login-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(33,150,243,0.3); }
+  .login-box .login-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+  .login-box .login-hint { font-size: 12px; color: var(--text-secondary); margin-top: 16px; }
+  .login-box .login-error { color: var(--danger); font-size: 13px; margin-top: 8px; display: none; }
+  .login-box .config-notice {
+    display: none; margin-bottom: 14px; font-size: 12px; line-height: 1.7;
+    color: #b26a00; background: #fff3e0; border: 1px solid #ffcc80;
+    border-radius: 10px; padding: 10px 12px; text-align: left;
+  }
+  .login-box .config-notice code {
+    background: #ffe0b2; border-radius: 4px; padding: 1px 4px; font-size: 11px;
+  }
+
+  /* User badge */
+  .user-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: #e3f2fd; border-radius: 10px; padding: 4px 10px 4px 8px;
+    font-size: 13px; color: var(--primary-dark); font-weight: 600;
+  }
+  .user-badge .avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+  .logout-btn {
+    border: none; background: none; color: var(--text-secondary);
+    font-size: 18px; cursor: pointer; padding: 2px 4px; transition: color 0.2s;
+  }
+  .logout-btn:hover { color: var(--danger); }
+
+  /* Admin link on login page */
+  .admin-link {
+    display: block; margin-top: 14px; font-size: 13px; color: var(--text-secondary);
+    cursor: pointer; transition: color 0.2s; background: none; border: none;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .admin-link:hover { color: var(--primary); }
+
+  /* Admin password overlay */
+  .admin-pw-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    display: none; align-items: center; justify-content: center; z-index: 5500;
+    padding: 20px;
+  }
+  .admin-pw-overlay.show { display: flex; }
+  .admin-pw-box {
+    background: var(--card); border-radius: 24px; padding: 36px 32px;
+    max-width: 360px; width: 90%; box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+    text-align: center;
+  }
+  .admin-pw-box .icon { font-size: 40px; margin-bottom: 10px; }
+  .admin-pw-box h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .admin-pw-box .sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+  .admin-pw-box input {
+    width: 100%; border: 2px solid #e3f2fd; border-radius: 12px;
+    padding: 12px 16px; font-size: 15px; outline: none; text-align: center;
+    transition: border-color 0.2s; margin-bottom: 12px;
+  }
+  .admin-pw-box input:focus { border-color: var(--primary); }
+  .admin-pw-box .pw-btn {
+    width: 100%; border: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white; border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: transform 0.15s;
+  }
+  .admin-pw-box .pw-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(33,150,243,0.3); }
+  .admin-pw-box .pw-back {
+    margin-top: 12px; font-size: 13px; color: var(--text-secondary);
+    cursor: pointer; background: none; border: none; transition: color 0.2s;
+  }
+  .admin-pw-box .pw-back:hover { color: var(--primary); }
+  .admin-pw-box .pw-error { color: var(--danger); font-size: 13px; margin-top: 8px; display: none; }
+
+  /* Admin panel overlay */
+  .admin-overlay {
+    position: fixed; inset: 0; background: linear-gradient(135deg, #e3f2fd 0%, #f0f6ff 50%, #e8f5e9 100%);
+    display: none; z-index: 5000; overflow-y: auto; padding: 20px;
+    justify-content: center;
+  }
+  .admin-overlay.show { display: flex; }
+  .admin-container {
+    max-width: 800px; width: 100%; margin: 0 auto;
+  }
+  .admin-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 0 16px; flex-wrap: wrap; gap: 10px;
+  }
+  .admin-header h1 {
+    font-size: 24px; font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .admin-header .admin-actions { display: flex; gap: 8px; align-items: center; }
+  .admin-header .admin-back-btn {
+    border: none; background: var(--card); color: var(--text-secondary);
+    border-radius: 10px; padding: 8px 16px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .admin-header .admin-back-btn:hover { color: var(--primary); background: #e3f2fd; }
+
+  .admin-summary {
+    display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .admin-summary .stat-card {
+    background: var(--card); border-radius: 14px; padding: 14px 20px;
+    box-shadow: var(--shadow); flex: 1; min-width: 120px; text-align: center;
+  }
+  .admin-summary .stat-card .sl { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .admin-summary .stat-card .sv { font-size: 22px; font-weight: 800; color: var(--primary-dark); }
+  .admin-summary .stat-card .sv.complete { color: var(--success); }
+
+  .admin-user-table {
+    background: var(--card); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow-x: auto;
+  }
+  .admin-table-header {
+    display: grid; grid-template-columns: 44px 1fr 70px 70px 80px 70px 110px 110px 90px;
+    min-width: 830px;
+    padding: 14px 20px; background: #f0f6ff; font-size: 13px; font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .admin-user-row {
+    display: grid; grid-template-columns: 44px 1fr 70px 70px 80px 70px 110px 110px 90px;
+    min-width: 830px;
+    padding: 14px 20px; border-top: 1px solid #f0f0f0;
+    align-items: center; transition: background 0.2s;
+  }
+  .admin-user-row .au-delete-btn {
+    border: none; background: none; color: #ccc; font-size: 16px;
+    cursor: pointer; padding: 2px 3px; transition: color 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .admin-user-row .au-delete-btn:hover { color: var(--danger); }
+  .admin-user-row .au-actions { display: flex; gap: 2px; justify-content: center; }
+  .admin-user-row:hover { background: #f5faff; }
+  .admin-user-row .au-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+  }
+  .admin-user-row .au-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .admin-user-row .au-days, .admin-user-row .au-records, .admin-user-row .au-total, .admin-user-row .au-goal,
+  .admin-user-row .au-first-login, .admin-user-row .au-last-active {
+    font-size: 13px; color: var(--text-secondary); text-align: center;
+  }
+  .admin-user-row .au-total { font-weight: 700; color: var(--primary-dark); }
+  .admin-user-row .au-first-login, .admin-user-row .au-last-active { font-size: 12px; }
+
+  /* Admin DAU chart */
+  .admin-chart-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow); margin-bottom: 16px;
+  }
+  .admin-chart-card h3 {
+    font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; font-weight: 500;
+  }
+  .admin-chart {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    height: 120px; gap: 8px; padding-bottom: 24px; position: relative;
+  }
+  .admin-chart::after {
+    content: ''; position: absolute; bottom: 24px; left: 0; right: 0;
+    height: 1px; background: #eee;
+  }
+  .admin-bar-group {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 6px; height: 100%; justify-content: flex-end;
+  }
+  .admin-bar {
+    width: 60%; max-width: 36px; border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, var(--primary-light), var(--primary));
+    transition: height 0.5s ease; min-height: 3px;
+  }
+  .admin-bar.today { background: linear-gradient(180deg, var(--accent), var(--primary-dark)); }
+  .admin-bar-label { font-size: 11px; color: var(--text-secondary); }
+  .admin-bar-amount { font-size: 10px; color: var(--text-secondary); margin-bottom: 2px; }
+
+  .admin-empty { text-align: center; padding: 40px; font-size: 14px; color: var(--text-secondary); }
+
+  @media (max-width: 760px) {
+    .admin-table-header, .admin-user-row {
+      grid-template-columns: 36px 1fr 60px 70px 85px 80px;
+      min-width: 460px;
+    }
+    .admin-table-header .col-goal, .admin-user-row .au-goal,
+    .admin-table-header .col-records, .admin-user-row .au-records,
+    .admin-table-header .col-first-login, .admin-user-row .au-first-login { display: none; }
+  }
+
+  .footer { text-align: center; padding: 8px 0 4px; font-size: 12px; color: var(--text-secondary); grid-column: 1 / -1; }
+
+  /* Responsive: single column on narrow screens */
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    .add-buttons { grid-template-columns: repeat(2, 1fr); }
+    .ring-center .amount { font-size: 30px; }
+    .header-actions { position: static; justify-content: center; margin-top: 8px; }
+  }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- Login overlay -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-icon">💧</div>
+    <h2>喝了么</h2>
+    <div class="login-sub">输入用户名和密码，开始记录每日饮水</div>
+    <div class="config-notice" id="configNotice">
+      ⚠️ 尚未配置 Supabase。<br>请按项目内 <b>DEPLOY.md</b> 指南创建数据库项目，并把 <code>index.html</code> 顶部的 URL 与 Key 填写完整后再使用。
+    </div>
+    <input type="text" id="loginInput" placeholder="用户名" maxlength="20" autocomplete="username"
+           onkeydown="if(event.key==='Enter')document.getElementById('loginPwInput').focus()">
+    <input type="password" id="loginPwInput" placeholder="密码" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">进 入</button>
+    <div class="login-error" id="loginError">用户名或密码错误</div>
+    <div class="login-hint">首次输入会自动创建账号 · 本设备将记住登录状态</div>
+    <button class="admin-link" onclick="showAdminLogin()">🛠 进入后台管理</button>
+  </div>
+</div>
+
+<!-- Admin password overlay -->
+<div class="admin-pw-overlay" id="adminPwOverlay" onclick="if(event.target===this)closeAdminLogin()">
+  <div class="admin-pw-box">
+    <div class="icon">🔒</div>
+    <h2>后台管理</h2>
+    <div class="sub">请输入管理密码</div>
+    <input type="password" id="adminPwInput" placeholder="管理密码" autocomplete="off"
+           onkeydown="if(event.key==='Enter')tryAdminLogin()">
+    <div class="pw-error" id="adminPwError">密码错误</div>
+    <button class="pw-btn" onclick="tryAdminLogin()">进 入</button>
+    <button class="pw-back" onclick="closeAdminLogin()">← 返回</button>
+  </div>
+</div>
+
+<!-- Admin panel overlay -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>🛠 后台管理 · 用户总览</h1>
+      <div class="admin-actions">
+        <button class="admin-back-btn" onclick="exportAllData()" title="导出所有用户数据">📤 导出全部数据</button>
+        <button class="admin-back-btn" onclick="document.getElementById('adminImportFile').click()" title="从文件导入所有用户数据">📥 导入全部数据</button>
+        <input type="file" id="adminImportFile" accept=".json" style="display:none" onchange="importAllData(event)">
+        <button class="admin-back-btn" onclick="exitAdmin()">← 返回前台</button>
+      </div>
+    </div>
+    <div class="admin-summary" id="adminSummary"></div>
+    <div class="admin-chart-card" id="adminChartCard" style="display:none;">
+      <h3>📈 近 7 天日活用户</h3>
+      <div class="admin-chart" id="adminChart"></div>
+    </div>
+    <div class="admin-user-table">
+      <div class="admin-table-header">
+        <span></span>
+        <span>用户名</span>
+        <span class="col-records">记录条数</span>
+        <span>记录天数</span>
+        <span>总饮水量</span>
+        <span class="col-goal">每日目标</span>
+        <span class="col-first-login">首次登录</span>
+        <span>最后活跃</span>
+        <span>操作</span>
+      </div>
+      <div id="adminUserList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Reset password modal -->
+<div class="modal-overlay" id="resetPwOverlay" style="z-index: 6000;">
+  <div class="modal">
+    <h3>🔑 重置密码</h3>
+    <p>为用户「<span id="resetPwUser"></span>」设置新密码（至少 4 位）</p>
+    <input type="password" id="resetPwInput" placeholder="新密码" autocomplete="off"
+           onkeydown="if(event.key==='Enter')executeResetPw()">
+    <div class="actions">
+      <button class="btn btn-cancel" onclick="closeResetPw()">取消</button>
+      <button class="btn btn-confirm" style="background:var(--primary);" onclick="executeResetPw()">确认重置</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete user confirmation modal -->
+<div class="modal-overlay" id="deleteUserOverlay" style="z-index: 6000;">
+  <div class="modal">
+    <h3>删除用户？</h3>
+    <p id="deleteUserMsg">此操作将永久删除该用户的所有喝水记录，不可撤销。</p>
+    <div class="actions">
+      <button class="btn btn-cancel" onclick="closeDeleteUser()">取消</button>
+      <button class="btn btn-confirm" onclick="executeDeleteUser()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin import all data confirmation modal -->
+<div class="modal-overlay" id="adminImportOverlay" style="z-index: 6000;">
+  <div class="modal" style="max-width: 460px;">
+    <h3>📥 导入全部数据？</h3>
+    <p id="adminImportMsg">即将从文件恢复所有用户数据，当前所有数据将被覆盖。</p>
+    <div id="adminImportPreview" style="text-align:left; font-size:13px; color:var(--text-secondary); background:#f5faff; border-radius:8px; padding:12px 16px; margin-bottom:16px; line-height:1.8;"></div>
+    <div class="actions">
+      <button class="btn btn-cancel" onclick="cancelAdminImport()">取消</button>
+      <button class="btn btn-confirm" onclick="executeAdminImport()">确认导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- ===== Header (spans both columns) ===== -->
+  <div class="header">
+    <h1>💧 喝了么</h1>
+    <p id="dateText"></p>
+    <div class="status-bar" id="statusBar"></div>
+    <div class="header-actions">
+      <div class="user-badge" id="userBadge" style="display:none;">
+        <span class="avatar" id="userAvatar"></span>
+        <span id="userName"></span>
+        <button class="logout-btn" onclick="doLogout()" title="退出登录">⏻</button>
+      </div>
+      <button class="icon-btn" onclick="exportData()" title="导出数据">📤</button>
+      <button class="icon-btn" onclick="document.getElementById('importFile').click()" title="从文件导入数据">📥</button>
+      <input type="file" id="importFile" accept=".js,.json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+
+  <!-- ===== Left column ===== -->
+  <div class="col-left">
+    <div class="progress-card">
+      <div class="ring-container">
+        <svg class="ring-svg" width="180" height="180" viewBox="0 0 180 180">
+          <defs>
+            <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2196F3" />
+              <stop offset="100%" stop-color="#00BCD4" />
+            </linearGradient>
+          </defs>
+          <circle class="ring-bg" cx="90" cy="90" r="76" />
+          <circle class="ring-fill" id="ringFill" cx="90" cy="90" r="76"
+                  stroke-dasharray="477.5" stroke-dashoffset="477.5" />
+        </svg>
+        <div class="ring-center">
+          <div class="amount" id="todayAmount">0</div>
+          <div class="unit">ml</div>
+          <div class="goal-text" id="goalText">目标 2000ml</div>
+        </div>
+      </div>
+      <div class="progress-info">
+        <div class="item">
+          <div class="label">完成度</div>
+          <div class="value" id="percentText">0%</div>
+        </div>
+        <div class="item">
+          <div class="label">还需</div>
+          <div class="value" id="remainingText">2000ml</div>
+        </div>
+        <div class="item">
+          <div class="label">记录次数</div>
+          <div class="value" id="countText">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-add-card">
+      <h3>
+        <span>🚰 快速记录</span>
+        <button class="history-btn" onclick="openBackfill()">📅 补录历史</button>
+      </h3>
+      <div class="add-buttons">
+        <button class="add-btn" onclick="addWater(150)">
+          <span class="icon">🥛</span><span>小杯</span><span class="ml">150ml</span>
+        </button>
+        <button class="add-btn" onclick="addWater(250)">
+          <span class="icon">☕</span><span>标准杯</span><span class="ml">250ml</span>
+        </button>
+        <button class="add-btn" onclick="addWater(400)">
+          <span class="icon">🍵</span><span>大杯</span><span class="ml">400ml</span>
+        </button>
+        <button class="add-btn" onclick="addWater(500)">
+          <span class="icon">🥤</span><span>水瓶</span><span class="ml">500ml</span>
+        </button>
+      </div>
+      <div class="custom-add">
+        <input type="number" id="customAmount" placeholder="自定义 ml 数量" min="1" max="5000">
+        <button onclick="addCustom()">添加</button>
+      </div>
+    </div>
+
+    <div class="log-card">
+      <h3>
+        <span>📋 今日记录</span>
+        <button class="clear-btn" onclick="confirmClear()">清空今日</button>
+      </h3>
+      <div class="log-list" id="logList">
+        <div class="log-empty">还没有记录，点击上方按钮开始 💧</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Right column ===== -->
+  <div class="col-right">
+    <div class="goal-card">
+      <span class="label">🎯 每日目标</span>
+      <div class="goal-control">
+        <button onclick="changeGoal(-100)">−</button>
+        <span class="goal-value" id="goalValue">2000ml</span>
+        <button onclick="changeGoal(100)">+</button>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h3>
+        <span>📊 近 7 天趋势</span>
+        <button class="history-btn" onclick="showHistory()">📜 查看全部历史</button>
+      </h3>
+      <div class="chart" id="chart"></div>
+    </div>
+
+    <div class="cal-card">
+      <div class="cal-header">
+        <span class="cal-title" id="calTitle">2026年8月</span>
+        <div class="cal-nav">
+          <button onclick="calChangeMonth(-1)" title="上个月">‹</button>
+          <button class="cal-today-btn" onclick="calGoToday()">今月</button>
+          <button onclick="calChangeMonth(1)" title="下个月">›</button>
+        </div>
+      </div>
+      <div class="cal-stats" id="calStats"></div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">日</div>
+        <div class="cal-weekday">一</div>
+        <div class="cal-weekday">二</div>
+        <div class="cal-weekday">三</div>
+        <div class="cal-weekday">四</div>
+        <div class="cal-weekday">五</div>
+        <div class="cal-weekday">六</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><span class="cal-legend-box l-none"></span>无记录</div>
+        <div class="cal-legend-item"><span class="cal-legend-box l-some"></span>有记录</div>
+        <div class="cal-legend-item"><span class="cal-legend-box l-good"></span>过半</div>
+        <div class="cal-legend-item"><span class="cal-legend-box l-great"></span>达标</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">💧 喝水追踪器 · 数据存储于 Supabase 云端 · Vercel 托管</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Clear confirmation modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>清空今日记录？</h3>
+    <p>此操作会删除今天的所有喝水记录，不可撤销。</p>
+    <div class="actions">
+      <button class="btn btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn btn-confirm" onclick="clearToday()">确认清空</button>
+    </div>
+  </div>
+</div>
+
+<!-- Backfill modal -->
+<div class="modal-overlay" id="backfillOverlay">
+  <div class="modal" style="max-width: 420px; text-align: left; padding: 24px;">
+    <h3 style="text-align: center; margin-bottom: 6px;">📅 补录喝水记录</h3>
+    <p style="text-align: center; margin-bottom: 18px;">选择日期和时间，补录漏掉的喝水数据</p>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+      <div style="flex: 1;">
+        <label style="font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 6px;">日期</label>
+        <input type="date" id="backfillDate" max="" style="width: 100%; border: 2px solid #e3f2fd; border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; color: var(--text);">
+      </div>
+      <div style="flex: 1;">
+        <label style="font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 6px;">时间</label>
+        <input type="time" id="backfillTime" style="width: 100%; border: 2px solid #e3f2fd; border-radius: 10px; padding: 10px 12px; font-size: 14px; outline: none; color: var(--text);">
+      </div>
+    </div>
+
+    <label style="font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 8px;">快速选择容量</label>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
+      <button class="add-btn" onclick="backfillAdd(150)"><span class="icon">🥛</span><span>小杯</span><span class="ml">150ml</span></button>
+      <button class="add-btn" onclick="backfillAdd(250)"><span class="icon">☕</span><span>标准杯</span><span class="ml">250ml</span></button>
+      <button class="add-btn" onclick="backfillAdd(400)"><span class="icon">🍵</span><span>大杯</span><span class="ml">400ml</span></button>
+      <button class="add-btn" onclick="backfillAdd(500)"><span class="icon">🥤</span><span>水瓶</span><span class="ml">500ml</span></button>
+    </div>
+
+    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+      <input type="number" id="backfillAmount" placeholder="自定义 ml 数量" min="1" max="5000" style="flex: 1; border: 2px solid #e3f2fd; border-radius: 10px; padding: 10px 14px; font-size: 14px; outline: none;">
+      <button onclick="backfillCustom()" style="border: none; background: var(--primary); color: white; border-radius: 10px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer;">添加</button>
+    </div>
+
+    <div id="backfillPreview" style="margin-bottom: 16px; padding: 10px 14px; background: #f5faff; border-radius: 10px; font-size: 13px; color: var(--text-secondary); display: none;"></div>
+
+    <div class="actions" style="justify-content: center;">
+      <button class="btn btn-cancel" onclick="closeBackfill()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- History modal -->
+<div class="history-modal-overlay" id="historyOverlay" onclick="if(event.target===this)closeHistory()">
+  <div class="history-modal">
+    <div class="hm-header">
+      <h3>📜 历史记录</h3>
+      <button class="hm-close" onclick="closeHistory()">✕</button>
+    </div>
+    <div class="hm-filters">
+      <button class="hm-filter-btn" onclick="setHistoryFilter('week')">最近一周</button>
+      <button class="hm-filter-btn active" onclick="setHistoryFilter('month')">最近一月</button>
+      <button class="hm-filter-btn" onclick="setHistoryFilter('quarter')">最近三月</button>
+      <button class="hm-filter-btn" onclick="setHistoryFilter('all')">全部</button>
+      <button class="hm-filter-btn" onclick="setHistoryFilter('custom')">自定义</button>
+    </div>
+    <div class="hm-date-range" id="dateRangeBar">
+      <input type="date" id="dateFrom">
+      <span class="range-sep">至</span>
+      <input type="date" id="dateTo">
+      <button onclick="applyCustomRange()">查询</button>
+    </div>
+    <div class="hm-body" id="historyBody"></div>
+    <div class="hm-pagination" id="historyPagination"></div>
+  </div>
+</div>
+
+<!-- Supabase JS SDK (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+  var DEFAULT_GOAL = 2000;
+  var RING_CIRCUMFERENCE = 2 * Math.PI * 76;
+  var SESSION_KEY = 'water_tracker_session';   // 登录会话缓存（仅存用户名）
+  var PBKDF2_ITERATIONS = 100000;              // 密码哈希迭代次数
+
+  // ---- 全局状态 ----
+  var db = null;            // Supabase 客户端
+  var currentUser = null;   // 当前登录用户名
+  var cache = {};           // 当前用户数据内存缓存（结构与旧版 userData 一致）
+
+  // ---- Supabase 初始化 ----
+  function isSupabaseConfigured() {
+    return !!SUPABASE_URL && SUPABASE_URL.indexOf('YOUR-') === -1 &&
+           !!SUPABASE_ANON_KEY && SUPABASE_ANON_KEY.indexOf('YOUR-') === -1 &&
+           typeof supabase !== 'undefined';
+  }
+
+  function initDb() {
+    if (!db && isSupabaseConfigured()) {
+      db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    return db;
+  }
+
+  // ---- 密码哈希（PBKDF2，Web Crypto 原生支持） ----
+  function randomSalt() {
+    var arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    return Array.from(arr).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+  function toHex(buf) {
+    return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+  async function pbkdf2Hash(password, salt) {
+    var enc = new TextEncoder();
+    var key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+    var bits = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt: enc.encode(salt), iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+      key, 256);
+    return toHex(bits);
+  }
+  async function hashPassword(password) {
+    var salt = randomSalt();
+    var hash = await pbkdf2Hash(password, salt);
+    return 'pbkdf2$' + PBKDF2_ITERATIONS + '$' + salt + '$' + hash;
+  }
+  async function verifyPassword(password, stored) {
+    try {
+      var parts = String(stored || '').split('$');
+      if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false;
+      var iterations = parseInt(parts[1], 10) || PBKDF2_ITERATIONS;
+      var hash = await pbkdf2Hash(password, parts[2]);
+      return hash === parts[3];
+    } catch(e) { return false; }
+  }
+
+  // ---- 数据层：内存缓存（同步读） + Supabase（异步写） ----
+  function loadData() { return cache; }
+  function saveData(data) { cache = data; } // 仅更新内存，数据库写入由各操作函数负责
+
+  async function loadUserData(username) {
+    var client = initDb();
+    var { data: profile, error: perr } = await client.from('profiles')
+      .select('*').eq('username', username).maybeSingle();
+    if (perr) throw perr;
+    if (!profile) throw new Error('用户不存在');
+    var { data: records, error: rerr } = await client.from('water_records')
+      .select('*').eq('username', username);
+    if (rerr) throw rerr;
+    var data = { _goal: profile.goal, _firstLogin: profile.first_login, _lastActive: profile.last_active };
+    (records || []).forEach(function(r) {
+      var d = r.date;
+      if (!data[d]) data[d] = [];
+      data[d].push({ id: r.id, time: r.time, amount: r.amount });
+    });
+    Object.keys(data).forEach(function(k) {
+      if (Array.isArray(data[k])) data[k].sort(function(a, b) { return a.id - b.id; });
+    });
+    cache = data;
+    currentUser = username;
+  }
+
+  // ---- Date helpers ----
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function dateStr(offset) {
+    var d = new Date();
+    d.setDate(d.getDate() + offset);
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function dayLabel(offset) {
+    var d = new Date();
+    d.setDate(d.getDate() + offset);
+    return ['日','一','二','三','四','五','六'][d.getDay()];
+  }
+  function formatDateDisplay(ds) {
+    var parts = ds.split('-');
+    var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    var weekdays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+    return parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日 ' + weekdays[d.getDay()];
+  }
+  function pad2(n) { return String(n).padStart(2, '0'); }
+
+  function getTodayLog() {
+    return loadData()[todayStr()] || [];
+  }
+  function getDayTotal(date) {
+    var log = loadData()[date] || [];
+    return log.reduce(function(sum, r) { return sum + r.amount; }, 0);
+  }
+
+  // ---- 登录 / 登出 ----
+  async function doLogin() {
+    var errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+    if (!isSupabaseConfigured()) {
+      errEl.textContent = '请先在 index.html 顶部配置 Supabase（见 DEPLOY.md）';
+      errEl.style.display = 'block';
+      return;
+    }
+    var name = (document.getElementById('loginInput').value || '').trim();
+    var pw = document.getElementById('loginPwInput').value;
+    if (!name) {
+      errEl.textContent = '请输入用户名';
+      errEl.style.display = 'block';
+      document.getElementById('loginInput').focus();
+      return;
+    }
+    if (!pw) {
+      errEl.textContent = '请输入密码';
+      errEl.style.display = 'block';
+      document.getElementById('loginPwInput').focus();
+      return;
+    }
+    var btn = document.getElementById('loginBtn');
+    btn.disabled = true; btn.textContent = '登录中…';
+    try {
+      var client = initDb();
+      var nowISO = new Date().toISOString();
+      var { data: profile } = await client.from('profiles')
+        .select('*').eq('username', name).maybeSingle();
+      var isNew = !profile;
+      if (isNew) {
+        // 注册新账号
+        var hash = await hashPassword(pw);
+        var { error: insErr } = await client.from('profiles').insert({
+          username: name, password_hash: hash, goal: DEFAULT_GOAL,
+          first_login: nowISO, last_active: nowISO
+        });
+        if (insErr) {
+          if (insErr.code === '23505') {
+            errEl.textContent = '用户名已被注册，请直接登录';
+          } else {
+            errEl.textContent = '注册失败：' + insErr.message;
+          }
+          errEl.style.display = 'block';
+          return;
+        }
+      } else {
+        // 校验密码
+        var ok = await verifyPassword(pw, profile.password_hash);
+        if (!ok) {
+          errEl.textContent = '用户名或密码错误';
+          errEl.style.display = 'block';
+          return;
+        }
+        await client.from('profiles').update({ last_active: nowISO }).eq('username', name);
+      }
+      currentUser = name;
+      localStorage.setItem(SESSION_KEY, name);
+      await loadUserData(name);
+      document.getElementById('loginOverlay').classList.add('hidden');
+      renderUserBadge();
+      calInit();
+      renderAll();
+      showToast(isNew ? '欢迎 ' + name + '！账号已创建 🎉' : '欢迎回来，' + name + ' 👋');
+    } catch(e) {
+      errEl.textContent = '网络或数据库错误：' + (e.message || e);
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = '进 入';
+    }
+  }
+
+  function doLogout() {
+    localStorage.removeItem(SESSION_KEY);
+    currentUser = null;
+    cache = {};
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    document.getElementById('loginInput').value = '';
+    document.getElementById('loginPwInput').value = '';
+    document.getElementById('userBadge').style.display = 'none';
+    document.getElementById('loginInput').focus();
+  }
+
+  function renderUserBadge() {
+    if (!currentUser) return;
+    document.getElementById('userBadge').style.display = 'flex';
+    document.getElementById('userName').textContent = currentUser;
+    document.getElementById('userAvatar').textContent = currentUser.charAt(0).toUpperCase();
+  }
+
+  // ---- Actions（全部异步写 Supabase） ----
+  async function addWater(amount) {
+    if (!currentUser) return;
+    var today = todayStr();
+    var now = new Date();
+    var time = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
+    try {
+      var { data, error } = await db.from('water_records')
+        .insert({ username: currentUser, date: today, time: time, amount: amount }).select();
+      if (error) throw error;
+      if (!cache[today]) cache[today] = [];
+      cache[today].push({ id: data[0].id, time: time, amount: amount });
+      showToast('+' + amount + 'ml 💧 已记录！');
+      renderAll();
+    } catch(e) { showToast('保存失败：' + e.message); }
+  }
+
+  function addCustom() {
+    var input = document.getElementById('customAmount');
+    var val = parseInt(input.value);
+    if (!val || val <= 0 || val > 5000) { showToast('请输入 1-5000 之间的数字'); return; }
+    input.value = '';
+    addWater(val);
+  }
+
+  async function deleteRecord(id) {
+    var today = todayStr();
+    try {
+      var { error } = await db.from('water_records').delete()
+        .eq('id', id).eq('username', currentUser);
+      if (error) throw error;
+      if (cache[today]) cache[today] = cache[today].filter(function(r) { return r.id !== id; });
+      renderAll();
+    } catch(e) { showToast('删除失败：' + e.message); }
+  }
+
+  // ---- Inline edit ----
+  var editingId = null;
+
+  function startEdit(id) {
+    editingId = id;
+    renderLog();
+    var input = document.getElementById('editInput_' + id);
+    if (input) { input.focus(); input.select(); }
+  }
+
+  async function saveEdit(id) {
+    var input = document.getElementById('editInput_' + id);
+    if (!input) return;
+    var val = parseInt(input.value);
+    if (!val || val <= 0 || val > 5000) { showToast('请输入 1-5000 之间的数字'); return; }
+    var rec = (cache[todayStr()] || []).find(function(r) { return r.id === id; });
+    if (rec) {
+      try {
+        var { error } = await db.from('water_records').update({ amount: val }).eq('id', id);
+        if (error) throw error;
+        rec.amount = val;
+      } catch(e) {
+        showToast('修改失败：' + e.message);
+        editingId = null;
+        renderAll();
+        return;
+      }
+    }
+    editingId = null;
+    renderAll();
+  }
+
+  function cancelEdit() { editingId = null; renderLog(); }
+
+  function handleEditKeydown(e, id) {
+    if (e.key === 'Enter') { e.preventDefault(); saveEdit(id); }
+    else if (e.key === 'Escape') { e.preventDefault(); cancelEdit(); }
+  }
+
+  function confirmClear() { document.getElementById('modalOverlay').classList.add('show'); }
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+
+  async function clearToday() {
+    var today = todayStr();
+    try {
+      var { error } = await db.from('water_records').delete()
+        .eq('username', currentUser).eq('date', today);
+      if (error) throw error;
+      cache[today] = [];
+      closeModal();
+      showToast('今日记录已清空');
+      renderAll();
+    } catch(e) {
+      closeModal();
+      showToast('清空失败：' + e.message);
+    }
+  }
+
+  async function changeGoal(delta) {
+    var oldGoal = cache._goal || DEFAULT_GOAL;
+    var goal = oldGoal + delta;
+    if (goal < 500) goal = 500;
+    if (goal > 10000) goal = 10000;
+    cache._goal = goal;
+    try {
+      var { error } = await db.from('profiles').update({ goal: goal }).eq('username', currentUser);
+      if (error) throw error;
+    } catch(e) {
+      cache._goal = oldGoal;
+      showToast('保存失败：' + e.message);
+    }
+    renderAll();
+  }
+
+  // ---- Export / Import（用户级） ----
+  function generateFileContent(data) {
+    return 'window.__WATER_DATA__ = ' + JSON.stringify(data, null, 2) + ';\n';
+  }
+
+  function downloadFile(content, filename, mime) {
+    var blob = new Blob([content], { type: mime });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  }
+
+  function exportData() {
+    var data = loadData();
+    var clone = JSON.parse(JSON.stringify(data));
+    clone._user = currentUser;
+    downloadFile(generateFileContent(clone), 'water-data.js', 'application/javascript');
+    showToast('已导出 water-data.js 📤');
+  }
+
+  function importData(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var text = e.target.result;
+      var data = null;
+      var match = text.match(/window\.\s*__WATER_DATA__\s*=\s*([\s\S]+?);?\s*$/);
+      if (match) { try { data = JSON.parse(match[1]); } catch(err) {} }
+      if (!data) { try { data = JSON.parse(text); } catch(err) {} }
+      if (!data || typeof data !== 'object') {
+        showToast('导入失败：文件格式错误');
+        event.target.value = '';
+        return;
+      }
+      importUserData(data).then(function() {
+        renderAll();
+        showToast('数据导入成功 ✅');
+      }).catch(function(err) {
+        showToast('导入失败：' + err.message);
+      }).finally(function() {
+        event.target.value = '';
+      });
+    };
+    reader.readAsText(file);
+  }
+
+  // 将一份旧格式数据整体写入当前用户的 Supabase 记录
+  async function importUserData(data) {
+    var username = currentUser;
+    var client = initDb();
+    // 清空该用户现有记录
+    var { error: delErr } = await client.from('water_records').delete().eq('username', username);
+    if (delErr) throw delErr;
+    // 重插记录
+    var rows = [];
+    Object.keys(data).forEach(function(k) {
+      if (k === '_goal' || k === '_firstLogin' || k === '_lastActive' || !/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
+      (data[k] || []).forEach(function(r) {
+        rows.push({ username: username, date: k, time: r.time, amount: r.amount });
+      });
+    });
+    if (rows.length) {
+      var { error: insErr } = await client.from('water_records').insert(rows);
+      if (insErr) throw insErr;
+    }
+    // 更新目标
+    if (data._goal) {
+      var { error: goalErr } = await client.from('profiles').update({ goal: data._goal }).eq('username', username);
+      if (goalErr) throw goalErr;
+    }
+    await loadUserData(username);
+  }
+
+  // ---- Backfill ----
+  function openBackfill() {
+    document.getElementById('backfillDate').value = dateStr(-1);
+    document.getElementById('backfillDate').max = todayStr();
+    document.getElementById('backfillTime').value = '12:00';
+    document.getElementById('backfillAmount').value = '';
+    updateBackfillPreview();
+    document.getElementById('backfillOverlay').classList.add('show');
+  }
+
+  function openBackfillForDate(date) {
+    document.getElementById('backfillDate').value = date;
+    document.getElementById('backfillDate').max = todayStr();
+    document.getElementById('backfillTime').value = '12:00';
+    document.getElementById('backfillAmount').value = '';
+    updateBackfillPreview();
+    document.getElementById('backfillOverlay').classList.add('show');
+  }
+
+  function closeBackfill() { document.getElementById('backfillOverlay').classList.remove('show'); }
+
+  function getBackfillDate() { return document.getElementById('backfillDate').value || todayStr(); }
+  function getBackfillTime() { return document.getElementById('backfillTime').value || '12:00'; }
+
+  async function backfillAdd(amount) {
+    var date = getBackfillDate();
+    var time = getBackfillTime();
+    if (date > todayStr()) { showToast('不能选择未来的日期'); return; }
+    try {
+      var { data, error } = await db.from('water_records')
+        .insert({ username: currentUser, date: date, time: time, amount: amount }).select();
+      if (error) throw error;
+      if (!cache[date]) cache[date] = [];
+      cache[date].push({ id: data[0].id, time: time, amount: amount });
+      cache[date].sort(function(a, b) { return a.time < b.time ? -1 : a.time > b.time ? 1 : 0; });
+      showToast('已补录 ' + amount + 'ml 到 ' + formatDateDisplay(date));
+      updateBackfillPreview();
+      renderAll();
+      if (document.getElementById('historyOverlay').classList.contains('show')) renderHistory();
+    } catch(e) { showToast('补录失败：' + e.message); }
+  }
+
+  function backfillCustom() {
+    var input = document.getElementById('backfillAmount');
+    var val = parseInt(input.value);
+    if (!val || val <= 0 || val > 5000) { showToast('请输入 1-5000 之间的数字'); return; }
+    input.value = '';
+    backfillAdd(val);
+  }
+
+  function updateBackfillPreview() {
+    var date = getBackfillDate();
+    var preview = document.getElementById('backfillPreview');
+    var data = loadData();
+    var records = data[date] || [];
+    if (records.length === 0) { preview.style.display = 'none'; return; }
+    var total = records.reduce(function(s, r) { return s + r.amount; }, 0);
+    var goal = data._goal || DEFAULT_GOAL;
+    var isComplete = total >= goal;
+    preview.style.display = 'block';
+    preview.innerHTML = '📋 ' + formatDateDisplay(date) + ' · 已有 ' + records.length + ' 条记录 · 合计 ' + total + 'ml' + (isComplete ? ' ✅ 已达标' : '');
+  }
+
+  // ---- Toast ----
+  function showToast(msg) {
+    var toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 2000);
+  }
+
+  // ---- History modal ----
+  var historyState = {
+    page: 1, pageSize: 10, filter: 'month',
+    dateFrom: '', dateTo: '', expandedDays: {}
+  };
+
+  function getFilteredDates() {
+    var data = loadData();
+    var dates = Object.keys(data).filter(function(k) {
+      return k !== '_goal' && /^\d{4}-\d{2}-\d{2}$/.test(k);
+    });
+    var from = null, to = null;
+    var now = new Date();
+    if (historyState.filter === 'week') { from = new Date(now); from.setDate(from.getDate() - 6); }
+    else if (historyState.filter === 'month') { from = new Date(now); from.setDate(from.getDate() - 29); }
+    else if (historyState.filter === 'quarter') { from = new Date(now); from.setDate(from.getDate() - 89); }
+    else if (historyState.filter === 'custom') {
+      if (historyState.dateFrom) from = new Date(historyState.dateFrom + 'T00:00:00');
+      if (historyState.dateTo) to = new Date(historyState.dateTo + 'T23:59:59');
+    }
+    if (from || to) {
+      dates = dates.filter(function(d) {
+        var dt = new Date(d + 'T00:00:00');
+        if (from && dt < from) return false;
+        if (to && dt > to) return false;
+        return true;
+      });
+    }
+    dates.sort(function(a, b) { return b.localeCompare(a); });
+    return dates;
+  }
+
+  function showHistory() {
+    historyState.page = 1;
+    historyState.expandedDays = {};
+    historyState.filter = 'month';
+    var now = new Date();
+    var monthAgo = new Date(now); monthAgo.setDate(monthAgo.getDate() - 29);
+    historyState.dateFrom = monthAgo.getFullYear() + '-' + pad2(monthAgo.getMonth()+1) + '-' + pad2(monthAgo.getDate());
+    historyState.dateTo = now.getFullYear() + '-' + pad2(now.getMonth()+1) + '-' + pad2(now.getDate());
+    updateFilterButtons();
+    document.getElementById('dateFrom').value = historyState.dateFrom;
+    document.getElementById('dateTo').value = historyState.dateTo;
+    document.getElementById('dateRangeBar').classList.remove('show');
+    renderHistory();
+    document.getElementById('historyOverlay').classList.add('show');
+  }
+
+  function closeHistory() { document.getElementById('historyOverlay').classList.remove('show'); }
+
+  function setHistoryFilter(filter) {
+    historyState.filter = filter;
+    historyState.page = 1;
+    historyState.expandedDays = {};
+    updateFilterButtons();
+    document.getElementById('dateRangeBar').classList.toggle('show', filter === 'custom');
+    renderHistory();
+  }
+
+  function updateFilterButtons() {
+    var btns = document.querySelectorAll('.hm-filter-btn');
+    btns.forEach(function(btn) {
+      var map = { '最近一周': 'week', '最近一月': 'month', '最近三月': 'quarter', '全部': 'all', '自定义': 'custom' };
+      var f = map[btn.textContent.trim()] || '';
+      btn.classList.toggle('active', f === historyState.filter);
+    });
+  }
+
+  function applyCustomRange() {
+    historyState.dateFrom = document.getElementById('dateFrom').value || '';
+    historyState.dateTo = document.getElementById('dateTo').value || '';
+    historyState.page = 1;
+    historyState.expandedDays = {};
+    renderHistory();
+  }
+
+  function toggleDay(date) {
+    historyState.expandedDays[date] = !historyState.expandedDays[date];
+    renderHistory();
+  }
+
+  function changeHistoryPage(delta) {
+    var dates = getFilteredDates();
+    var totalPages = Math.max(1, Math.ceil(dates.length / historyState.pageSize));
+    historyState.page = Math.max(1, Math.min(totalPages, historyState.page + delta));
+    renderHistory();
+  }
+
+  function goToHistoryPage() {
+    var input = document.getElementById('hmPageInput');
+    var page = parseInt(input.value);
+    var dates = getFilteredDates();
+    var totalPages = Math.max(1, Math.ceil(dates.length / historyState.pageSize));
+    if (!page || page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+    historyState.page = page;
+    renderHistory();
+  }
+
+  function changeHistoryPageSize(val) {
+    historyState.pageSize = parseInt(val) || 10;
+    historyState.page = 1;
+    renderHistory();
+  }
+
+  function renderHistory() {
+    var data = loadData();
+    var goal = data._goal || DEFAULT_GOAL;
+    var body = document.getElementById('historyBody');
+    var pagBar = document.getElementById('historyPagination');
+    var cupIcons = { 150: '\u{1F963}', 250: '\u2615', 400: '\u{1F375}', 500: '\u{1F964}' };
+
+    var allDates = getFilteredDates();
+    var totalDays = allDates.length;
+    var totalPages = Math.max(1, Math.ceil(totalDays / historyState.pageSize));
+    if (historyState.page > totalPages) historyState.page = totalPages;
+    if (historyState.page < 1) historyState.page = 1;
+    var startIdx = (historyState.page - 1) * historyState.pageSize;
+    var pageDates = allDates.slice(startIdx, startIdx + historyState.pageSize);
+
+    if (totalDays === 0) {
+      body.innerHTML = '<div class="history-empty">该时间范围内没有记录 📭</div>';
+      pagBar.innerHTML = '';
+      return;
+    }
+
+    body.innerHTML = pageDates.map(function(date) {
+      var records = data[date] || [];
+      var total = records.reduce(function(s, r) { return s + r.amount; }, 0);
+      var isComplete = total >= goal && goal > 0;
+      var isExpanded = historyState.expandedDays[date];
+
+      var recordsHtml = records.map(function(r) {
+        var icon = cupIcons[r.amount] || '\u{1F4A7}';
+        return '<div class="day-record">' +
+          '<span class="dr-rec-time">' + icon + ' ' + r.time + '</span>' +
+          '<span class="dr-rec-amount">' + r.amount + 'ml</span>' +
+        '</div>';
+      }).join('');
+
+      recordsHtml += '<div style="text-align: center; padding: 8px 0 2px;">' +
+        '<button class="hm-filter-btn" onclick="openBackfillForDate(\'' + date + '\')" style="color: var(--primary); border-color: var(--primary-light);">＋ 为这天补录</button>' +
+      '</div>';
+
+      return '<div class="day-row' + (isExpanded ? ' expanded' : '') + '">' +
+        '<div class="day-row-header" onclick="toggleDay(\'' + date + '\')">' +
+          '<div class="dr-left">' +
+            '<span class="dr-arrow">\u25B6</span>' +
+            '<span class="dr-date">' + formatDateDisplay(date) + '</span>' +
+          '</div>' +
+          '<div class="dr-right">' +
+            '<span class="dr-count">' + records.length + ' 条</span>' +
+            '<span class="dr-total' + (isComplete ? ' complete' : '') + '">' + total + 'ml' + (isComplete ? ' \u2705' : '') + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="day-records">' + recordsHtml + '</div>' +
+      '</div>';
+    }).join('');
+
+    pagBar.innerHTML =
+      '<span class="total-info">共 ' + totalDays + ' 天</span>' +
+      '<button onclick="changeHistoryPage(-1)" ' + (historyState.page <= 1 ? 'disabled' : '') + '>\u2039 上一页</button>' +
+      '<span class="page-info">第 <input type="number" class="page-input" id="hmPageInput" value="' + historyState.page + '" min="1" max="' + totalPages + '" onchange="goToHistoryPage()" onkeydown="if(event.key===\'Enter\'){event.preventDefault();goToHistoryPage();}"> / ' + totalPages + ' 页</span>' +
+      '<button onclick="changeHistoryPage(1)" ' + (historyState.page >= totalPages ? 'disabled' : '') + '>下一页 \u203A</button>' +
+      '<select class="size-select" onchange="changeHistoryPageSize(this.value)">' +
+        '<option value="10"' + (historyState.pageSize === 10 ? ' selected' : '') + '>10条/页</option>' +
+        '<option value="20"' + (historyState.pageSize === 20 ? ' selected' : '') + '>20条/页</option>' +
+        '<option value="50"' + (historyState.pageSize === 50 ? ' selected' : '') + '>50条/页</option>' +
+      '</select>';
+  }
+
+  // ---- Calendar ----
+  var calYear, calMonth; // 0-indexed month
+
+  function calInit() {
+    var now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+  }
+
+  function calChangeMonth(delta) {
+    calMonth += delta;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  }
+
+  function calGoToday() {
+    var now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    var data = loadData();
+    var goal = data._goal || DEFAULT_GOAL;
+    var today = todayStr();
+
+    document.getElementById('calTitle').textContent = calYear + '年' + (calMonth + 1) + '月';
+
+    var firstDay = new Date(calYear, calMonth, 1).getDay();
+    var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+    var grid = document.getElementById('calGrid');
+    var html = '';
+
+    for (var i = 0; i < firstDay; i++) {
+      html += '<div class="cal-day empty"></div>';
+    }
+
+    var totalMonth = 0;
+    var recordDays = 0;
+    var goalDays = 0;
+
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateKey = calYear + '-' + pad2(calMonth + 1) + '-' + pad2(d);
+      var total = getDayTotal(dateKey);
+      var hasData = total > 0;
+      var isFuture = dateKey > today;
+      var isToday = dateKey === today;
+
+      if (hasData) {
+        recordDays++;
+        totalMonth += total;
+        if (total >= goal) goalDays++;
+      }
+
+      var cls = 'cal-day';
+      if (hasData) {
+        cls += ' has-data';
+        if (total >= goal) cls += ' great';
+        else if (total >= goal * 0.5) cls += ' good';
+      }
+      if (isToday) cls += ' today';
+      if (isFuture) cls += ' future';
+
+      html += '<div class="' + cls + '"' + (!isFuture ? ' onclick="openBackfillForDate(\'' + dateKey + '\')" style="cursor:pointer;"' : '') + '>' +
+        '<div class="cd-num">' + d + '</div>' +
+        (hasData ? '<div class="cd-amount">' + total + 'ml</div>' : '') +
+      '</div>';
+    }
+
+    grid.innerHTML = html;
+
+    var stats = document.getElementById('calStats');
+    var avgPerDay = recordDays > 0 ? Math.round(totalMonth / recordDays) : 0;
+    stats.innerHTML =
+      '<div class="cal-stat"><div class="cs-label">本月合计</div><div class="cs-value">' + totalMonth + 'ml</div></div>' +
+      '<div class="cal-stat"><div class="cs-label">记录天数</div><div class="cs-value">' + recordDays + '天</div></div>' +
+      '<div class="cal-stat"><div class="cs-label">日均饮水</div><div class="cs-value">' + avgPerDay + 'ml</div></div>' +
+      '<div class="cal-stat"><div class="cs-label">达标天数</div><div class="cs-value' + (goalDays > 0 ? ' complete' : '') + '">' + goalDays + '天</div></div>';
+  }
+
+  // ---- Render ----
+  function renderStatusBar() {
+    var bar = document.getElementById('statusBar');
+    bar.innerHTML = '<span class="dot cloud"></span> 数据已同步至云端 · Supabase';
+  }
+
+  function renderHeader() {
+    var d = new Date();
+    var weekdays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+    document.getElementById('dateText').textContent =
+      d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日 ' + weekdays[d.getDay()];
+  }
+
+  function renderProgress() {
+    var goal = getGoal();
+    var total = getDayTotal(todayStr());
+    var percent = Math.min(100, Math.round(total / goal * 100));
+    var remaining = Math.max(0, goal - total);
+
+    document.getElementById('todayAmount').textContent = total;
+    document.getElementById('goalText').textContent = '目标 ' + goal + 'ml';
+    document.getElementById('goalValue').textContent = goal + 'ml';
+
+    var percentEl = document.getElementById('percentText');
+    percentEl.textContent = percent + '%';
+    percentEl.className = 'value' + (percent >= 100 ? ' complete' : '');
+
+    document.getElementById('remainingText').textContent = remaining > 0 ? remaining + 'ml' : '已完成 ✅';
+    document.getElementById('countText').textContent = getTodayLog().length;
+
+    var offset = RING_CIRCUMFERENCE * (1 - Math.min(1, total / goal));
+    document.getElementById('ringFill').style.strokeDashoffset = offset;
+
+    if (percent >= 100) showToast('🎉 太棒了！今日喝水目标已完成！');
+  }
+
+  function renderLog() {
+    var log = getTodayLog();
+    var list = document.getElementById('logList');
+    if (log.length === 0) {
+      list.innerHTML = '<div class="log-empty">还没有记录，点击上方按钮开始 💧</div>';
+      return;
+    }
+    var cupIcons = { 150: '🥛', 250: '☕', 400: '🍵', 500: '🥤' };
+    list.innerHTML = log.slice().reverse().map(function(r) {
+      var icon = cupIcons[r.amount] || '💧';
+      if (editingId === r.id) {
+        return '<div class="log-item">' +
+          '<div class="left"><span class="cup-icon">' + icon + '</span><span class="time">' + r.time + '</span></div>' +
+          '<div class="actions">' +
+            '<input type="number" class="edit-input" id="editInput_' + r.id + '" value="' + r.amount + '" min="1" max="5000" onkeydown="handleEditKeydown(event,' + r.id + ')">' +
+            '<span style="font-size:12px;color:var(--text-secondary);">ml</span>' +
+            '<button class="save-btn" onclick="saveEdit(' + r.id + ')" title="保存">✓</button>' +
+            '<button class="cancel-btn" onclick="cancelEdit()" title="取消">✕</button>' +
+          '</div>' +
+        '</div>';
+      }
+      return '<div class="log-item">' +
+        '<div class="left"><span class="cup-icon">' + icon + '</span><span class="time">' + r.time + '</span></div>' +
+        '<div class="actions">' +
+          '<span class="amount-text">' + r.amount + 'ml</span>' +
+          '<button class="edit-btn" onclick="startEdit(' + r.id + ')" title="编辑">✎</button>' +
+          '<button class="delete-btn" onclick="deleteRecord(' + r.id + ')" title="删除">✕</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderChart() {
+    var goal = getGoal();
+    var chart = document.getElementById('chart');
+    var days = [];
+    for (var i = 6; i >= 0; i--) {
+      days.push({ date: dateStr(-i), label: dayLabel(-i), offset: i });
+    }
+    var maxVal = goal;
+    days.forEach(function(d) { var t = getDayTotal(d.date); if (t > maxVal) maxVal = t; });
+
+    chart.innerHTML = days.map(function(d) {
+      var total = getDayTotal(d.date);
+      var heightPct = maxVal > 0 ? (total / maxVal) * 100 : 0;
+      var isToday = d.offset === 0;
+      var isComplete = total >= goal && goal > 0;
+      var barClass = 'bar';
+      if (isToday) barClass += ' today';
+      else if (isComplete) barClass += ' complete';
+      return '<div class="bar-group">' +
+        (total > 0 ? '<span class="bar-amount">' + total + '</span>' : '<span class="bar-amount">&nbsp;</span>') +
+        '<div class="' + barClass + '" style="height: ' + Math.max(2, heightPct) + '%"></div>' +
+        '<span class="bar-label">' + (isToday ? '今天' : d.label) + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  function getGoal() {
+    return loadData()._goal || DEFAULT_GOAL;
+  }
+
+  function renderAll() {
+    renderHeader();
+    renderStatusBar();
+    renderProgress();
+    renderLog();
+    renderChart();
+    renderCalendar();
+  }
+
+  // ---- Event listeners ----
+  document.getElementById('customAmount').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addCustom();
+  });
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+  document.getElementById('deleteUserOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteUser();
+  });
+  document.getElementById('resetPwOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeResetPw();
+  });
+  document.getElementById('backfillOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeBackfill();
+  });
+  document.getElementById('backfillDate').addEventListener('change', updateBackfillPreview);
+  document.getElementById('backfillTime').addEventListener('change', updateBackfillPreview);
+  document.getElementById('backfillAmount').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') backfillCustom();
+  });
+
+  // ---- Admin ----
+  function showAdminLogin() {
+    document.getElementById('adminPwInput').value = '';
+    document.getElementById('adminPwError').style.display = 'none';
+    document.getElementById('adminPwOverlay').classList.add('show');
+    setTimeout(function() { document.getElementById('adminPwInput').focus(); }, 100);
+  }
+
+  function closeAdminLogin() {
+    document.getElementById('adminPwOverlay').classList.remove('show');
+  }
+
+  function tryAdminLogin() {
+    var pw = document.getElementById('adminPwInput').value;
+    if (pw === ADMIN_PASSWORD) {
+      closeAdminLogin();
+      showAdminPanel();
+    } else {
+      document.getElementById('adminPwError').style.display = 'block';
+      var input = document.getElementById('adminPwInput');
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  function exitAdmin() {
+    document.getElementById('adminOverlay').classList.remove('show');
+  }
+
+  // ---- Admin: 重置密码 ----
+  var pendingResetUser = null;
+
+  function confirmResetPw(username) {
+    pendingResetUser = username;
+    document.getElementById('resetPwUser').textContent = username;
+    document.getElementById('resetPwInput').value = '';
+    document.getElementById('resetPwOverlay').classList.add('show');
+    setTimeout(function() { document.getElementById('resetPwInput').focus(); }, 100);
+  }
+
+  function closeResetPw() {
+    pendingResetUser = null;
+    document.getElementById('resetPwOverlay').classList.remove('show');
+  }
+
+  async function executeResetPw() {
+    if (!pendingResetUser) return;
+    var pw = document.getElementById('resetPwInput').value;
+    if (!pw || pw.length < 4) { showToast('密码至少 4 位'); return; }
+    try {
+      var hash = await hashPassword(pw);
+      var { error } = await db.from('profiles').update({ password_hash: hash }).eq('username', pendingResetUser);
+      if (error) throw error;
+      showToast('已重置「' + pendingResetUser + '」的密码 🔑');
+      closeResetPw();
+      await showAdminPanel();
+    } catch(e) {
+      showToast('重置失败：' + e.message);
+    }
+  }
+
+  // ---- Admin: export / import all data ----
+  async function exportAllData() {
+    if (!db) return;
+    try {
+      var { data: profiles, error: perr } = await db.from('profiles').select('*');
+      if (perr) throw perr;
+      var { data: records, error: rerr } = await db.from('water_records').select('*');
+      if (rerr) throw rerr;
+      var users = (profiles || []).map(function(p) { return p.username; });
+      var userData = {};
+      (profiles || []).forEach(function(p) {
+        var ud = {
+          _goal: p.goal,
+          _firstLogin: p.first_login,
+          _lastActive: p.last_active,
+          _passwordHash: p.password_hash
+        };
+        (records || []).forEach(function(r) {
+          if (r.username !== p.username) return;
+          if (!ud[r.date]) ud[r.date] = [];
+          ud[r.date].push({ id: r.id, time: r.time, amount: r.amount });
+        });
+        userData[p.username] = ud;
+      });
+      var exportObj = {
+        _exportTime: new Date().toISOString(),
+        _appVersion: 'v11.0-supabase',
+        _userCount: users.length,
+        users: users,
+        userData: userData
+      };
+      var now = new Date();
+      var filename = 'water-backup-all-' +
+        now.getFullYear() + pad2(now.getMonth()+1) + pad2(now.getDate()) + '-' +
+        pad2(now.getHours()) + pad2(now.getMinutes()) + '.json';
+      downloadFile(JSON.stringify(exportObj, null, 2), filename, 'application/json');
+      showToast('已导出 ' + users.length + ' 个用户的全部数据 📤');
+    } catch(e) {
+      showToast('导出失败：' + e.message);
+    }
+  }
+
+  var pendingImportData = null;
+
+  function importAllData(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var parsed = JSON.parse(e.target.result);
+        if (!parsed || !parsed.users || !parsed.userData) {
+          showToast('导入失败：文件格式不正确');
+          event.target.value = '';
+          return;
+        }
+        pendingImportData = parsed;
+        var userCount = parsed.users.length;
+        var previewEl = document.getElementById('adminImportPreview');
+        var html = '<div>📄 文件信息：</div>';
+        html += '<div>导出时间：' + (parsed._exportTime ? formatDateTime(parsed._exportTime) : '-') + '</div>';
+        html += '<div>用户数量：<strong>' + userCount + '</strong> 人</div>';
+        html += '<div style="margin-top:6px;border-top:1px solid #e0e0e0;padding-top:6px;">用户列表：</div>';
+        parsed.users.forEach(function(u) {
+          var ud = parsed.userData[u] || {};
+          var goal = ud._goal || 2000;
+          var days = 0;
+          Object.keys(ud).forEach(function(k) {
+            if (/^\d{4}-\d{2}-\d{2}$/.test(k) && ud[k] && ud[k].length > 0) days++;
+          });
+          var pwNote = ud._passwordHash ? '' : '（导入后默认密码 water123）';
+          html += '<div>· ' + u + '（目标 ' + goal + 'ml，' + days + ' 天记录）' + pwNote + '</div>';
+        });
+        previewEl.innerHTML = html;
+        document.getElementById('adminImportOverlay').classList.add('show');
+      } catch(err) {
+        showToast('导入失败：文件解析错误');
+      }
+      event.target.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  function cancelAdminImport() {
+    pendingImportData = null;
+    document.getElementById('adminImportOverlay').classList.remove('show');
+  }
+
+  async function executeAdminImport() {
+    if (!pendingImportData) return;
+    var parsed = pendingImportData;
+    try {
+      // 清空现有数据
+      var { error: delRec } = await db.from('water_records').delete().neq('id', 0);
+      if (delRec) throw delRec;
+      var { error: delPro } = await db.from('profiles').delete().neq('username', '___NONE___');
+      if (delPro) throw delPro;
+      // 写入
+      for (var i = 0; i < parsed.users.length; i++) {
+        var u = parsed.users[i];
+        var ud = parsed.userData[u] || {};
+        var hash = ud._passwordHash || (await hashPassword('water123'));
+        var nowISO = new Date().toISOString();
+        var { error: pErr } = await db.from('profiles').insert({
+          username: u,
+          password_hash: hash,
+          goal: ud._goal || 2000,
+          first_login: ud._firstLogin || nowISO,
+          last_active: ud._lastActive || nowISO
+        });
+        if (pErr) throw pErr;
+        var rows = [];
+        Object.keys(ud).forEach(function(k) {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
+          (ud[k] || []).forEach(function(r) {
+            rows.push({ username: u, date: k, time: r.time, amount: r.amount });
+          });
+        });
+        if (rows.length) {
+          var { error: rErr } = await db.from('water_records').insert(rows);
+          if (rErr) throw rErr;
+        }
+      }
+      cancelAdminImport();
+      showToast('已恢复 ' + parsed.users.length + ' 个用户的数据 ✅');
+      if (currentUser) { try { await loadUserData(currentUser); renderAll(); } catch(e2) {} }
+      await showAdminPanel();
+    } catch(e) {
+      showToast('导入失败：' + e.message);
+    }
+  }
+
+  // ---- Delete user ----
+  var pendingDeleteUser = null;
+
+  function confirmDeleteUser(username) {
+    pendingDeleteUser = username;
+    document.getElementById('deleteUserMsg').textContent =
+      '此操作将永久删除用户「' + username + '」及其所有喝水记录，不可撤销。';
+    document.getElementById('deleteUserOverlay').classList.add('show');
+  }
+
+  function closeDeleteUser() {
+    pendingDeleteUser = null;
+    document.getElementById('deleteUserOverlay').classList.remove('show');
+  }
+
+  async function executeDeleteUser() {
+    if (!pendingDeleteUser) return;
+    var username = pendingDeleteUser;
+    try {
+      var { error } = await db.from('profiles').delete().eq('username', username);
+      if (error) throw error;
+      if (currentUser === username) {
+        localStorage.removeItem(SESSION_KEY);
+        currentUser = null;
+        cache = {};
+      }
+      closeDeleteUser();
+      showToast('用户「' + username + '」已删除 🗑');
+      await showAdminPanel();
+    } catch(e) {
+      closeDeleteUser();
+      showToast('删除失败：' + e.message);
+    }
+  }
+
+  function formatDateTime(iso) {
+    if (!iso) return '-';
+    try {
+      var d = new Date(iso);
+      return pad2(d.getMonth()+1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    } catch(e) { return '-'; }
+  }
+
+  // ---- Admin panel（数据来自 Supabase 聚合） ----
+  async function showAdminPanel() {
+    if (!db) { showToast('请先配置 Supabase'); return; }
+    var listEl = document.getElementById('adminUserList');
+    var summaryEl = document.getElementById('adminSummary');
+    var chartCardEl = document.getElementById('adminChartCard');
+    var chartEl = document.getElementById('adminChart');
+
+    try {
+      var { data: profiles, error: perr } = await db.from('profiles')
+        .select('*').order('last_active', { ascending: false });
+      if (perr) throw perr;
+      var { data: records, error: rerr } = await db.from('water_records').select('*');
+      if (rerr) throw rerr;
+
+      if (!profiles || profiles.length === 0) {
+        listEl.innerHTML = '<div class="admin-empty">还没有注册用户 📭</div>';
+        summaryEl.innerHTML = '';
+        chartCardEl.style.display = 'none';
+        document.getElementById('adminOverlay').classList.add('show');
+        return;
+      }
+
+      // 按用户/按日期聚合
+      var recByUser = {};
+      var recByDate = {};
+      (records || []).forEach(function(r) {
+        if (!recByUser[r.username]) recByUser[r.username] = [];
+        recByUser[r.username].push(r);
+        if (!recByDate[r.date]) recByDate[r.date] = [];
+        recByDate[r.date].push(r);
+      });
+
+      var allStats = profiles.map(function(p) {
+        var pr = recByUser[p.username] || [];
+        var days = {};
+        var recCount = 0, total = 0;
+        pr.forEach(function(r) { recCount++; total += r.amount; days[r.date] = true; });
+        return {
+          name: p.username, days: Object.keys(days).length, records: recCount,
+          total: total, goal: p.goal, firstLogin: p.first_login, lastActive: p.last_active
+        };
+      });
+
+      // Summary
+      var totalUsers = allStats.length;
+      var totalRecords = allStats.reduce(function(s, u) { return s + u.records; }, 0);
+      var totalDays = allStats.reduce(function(s, u) { return s + u.days; }, 0);
+      var totalWater = allStats.reduce(function(s, u) { return s + u.total; }, 0);
+
+      summaryEl.innerHTML =
+        '<div class="stat-card"><div class="sl">注册用户</div><div class="sv">' + totalUsers + '</div></div>' +
+        '<div class="stat-card"><div class="sl">总记录条数</div><div class="sv">' + totalRecords + '</div></div>' +
+        '<div class="stat-card"><div class="sl">总记录天数</div><div class="sv">' + totalDays + '天</div></div>' +
+        '<div class="stat-card"><div class="sl">总饮水量</div><div class="sv complete">' + (totalWater >= 1000 ? (totalWater / 1000).toFixed(1) + 'L' : totalWater + 'ml') + '</div></div>';
+
+      // 7-day DAU chart
+      chartCardEl.style.display = 'block';
+      var dayLabels = ['日','一','二','三','四','五','六'];
+      var chartDays = [];
+      for (var i = 6; i >= 0; i--) {
+        var ds = dateStr(-i);
+        var byDate = recByDate[ds] || [];
+        var userSet = {};
+        byDate.forEach(function(r) { userSet[r.username] = true; });
+        var count = Object.keys(userSet).length;
+        chartDays.push({ date: ds, label: i === 0 ? '今天' : dayLabels[new Date(ds + 'T00:00:00').getDay()], count: count, isToday: i === 0 });
+      }
+      var maxCount = 1;
+      chartDays.forEach(function(d) { if (d.count > maxCount) maxCount = d.count; });
+      chartEl.innerHTML = chartDays.map(function(d) {
+        var heightPct = (d.count / maxCount) * 100;
+        var barClass = 'admin-bar' + (d.isToday ? ' today' : '');
+        return '<div class="admin-bar-group">' +
+          (d.count > 0 ? '<span class="admin-bar-amount">' + d.count + '人</span>' : '<span class="admin-bar-amount">&nbsp;</span>') +
+          '<div class="' + barClass + '" style="height:' + Math.max(3, heightPct) + '%"></div>' +
+          '<span class="admin-bar-label">' + d.label + '</span>' +
+        '</div>';
+      }).join('');
+
+      // User rows
+      listEl.innerHTML = allStats.map(function(u) {
+        var totalDisplay = u.total >= 1000 ? (u.total / 1000).toFixed(1) + 'L' : u.total + 'ml';
+        var escName = u.name.replace(/'/g, "\\'");
+        return '<div class="admin-user-row">' +
+          '<div class="au-avatar">' + u.name.charAt(0).toUpperCase() + '</div>' +
+          '<div class="au-name">' + u.name + '</div>' +
+          '<div class="au-records col-records">' + u.records + ' 条</div>' +
+          '<div class="au-days">' + u.days + ' 天</div>' +
+          '<div class="au-total">' + totalDisplay + '</div>' +
+          '<div class="au-goal col-goal">' + u.goal + 'ml</div>' +
+          '<div class="au-first-login col-first-login">' + formatDateTime(u.firstLogin) + '</div>' +
+          '<div class="au-last-active">' + formatDateTime(u.lastActive) + '</div>' +
+          '<div class="au-actions">' +
+            '<button class="au-delete-btn" onclick="confirmResetPw(\'' + escName + '\')" title="重置密码">🔑</button>' +
+            '<button class="au-delete-btn" onclick="confirmDeleteUser(\'' + escName + '\')" title="删除用户">🗑</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      document.getElementById('adminOverlay').classList.add('show');
+    } catch(e) {
+      showToast('加载失败：' + e.message);
+    }
+  }
+
+  // ---- Init ----
+  async function initApp() {
+    if (!isSupabaseConfigured()) {
+      document.getElementById('configNotice').style.display = 'block';
+      document.getElementById('loginOverlay').classList.remove('hidden');
+      return;
+    }
+    initDb();
+    var saved = localStorage.getItem(SESSION_KEY);
+    if (saved) {
+      try {
+        await loadUserData(saved);
+        document.getElementById('loginOverlay').classList.add('hidden');
+        renderUserBadge();
+        calInit();
+        renderAll();
+        return;
+      } catch(e) {
+        // 会话失效（用户被删除等），回到登录页
+        localStorage.removeItem(SESSION_KEY);
+        currentUser = null;
+        cache = {};
+      }
+    }
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    setTimeout(function() {
+      document.getElementById('loginInput').focus();
+    }, 100);
+  }
+
+  initApp();
+</script>
+
+</body>
+</html>
