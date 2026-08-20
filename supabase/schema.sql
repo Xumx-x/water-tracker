@@ -7,16 +7,29 @@
 -- username      用户名（唯一，登录标识）
 -- password_hash 密码哈希（PBKDF2，格式：pbkdf2$100000$<salt>$<hex hash>）
 -- goal          每日饮水目标（ml）
+-- custom_cups   自定义快速记录按钮（JSON 字符串，null=使用默认 4 个）
 -- first_login   首次登录时间
 -- last_active   最后活跃时间
 create table if not exists public.profiles (
   username      text primary key,
   password_hash text not null,
   goal          integer not null default 2000 check (goal between 500 and 10000),
+  custom_cups   text,
   first_login   timestamptz not null default now(),
   last_active   timestamptz not null default now(),
   created_at    timestamptz not null default now()
 );
+
+-- 如果表已存在，添加 custom_cups 列（安全迁移，重复执行不报错）
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profiles' and column_name = 'custom_cups'
+  ) then
+    alter table public.profiles add column custom_cups text;
+  end if;
+end $$;
 
 -- 2) 喝水记录表 water_records
 -- date   日期（YYYY-MM-DD）

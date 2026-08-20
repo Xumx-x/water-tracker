@@ -6,7 +6,7 @@
 <title>💧 喝了么</title>
 <script>
   /* ============================================================
-   * 喝了么 · 云端版（Vercel + Supabase）
+   * 喝了么 · 云端版（Netlify + Supabase）
    * ============================================================
    * 部署前必填（见项目根目录 DEPLOY.md）：
    *   1. SUPABASE_URL      在 Supabase 控制台 Project Settings → API → Project URL
@@ -330,6 +330,14 @@
     font-size: 18px; font-weight: 700; color: var(--primary-dark);
     min-width: 60px; text-align: center;
   }
+  .goal-card .goal-input {
+    width: 88px; border: 2px solid #e3f2fd; border-radius: 8px;
+    padding: 5px 8px; font-size: 16px; font-weight: 700; color: var(--primary-dark);
+    text-align: center; outline: none; transition: border-color 0.2s;
+    box-sizing: border-box;
+  }
+  .goal-card .goal-input:focus { border-color: var(--primary); }
+  .goal-card .goal-unit { font-size: 14px; color: var(--text-secondary); font-weight: 600; }
 
   /* Chart card (right column) */
   .chart-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
@@ -569,6 +577,12 @@
   }
   .day-record .dr-rec-time { color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
   .day-record .dr-rec-amount { font-weight: 600; color: var(--primary-dark); }
+  .day-record .dr-rec-del {
+    border: none; background: none; color: var(--text-secondary);
+    font-size: 13px; cursor: pointer; padding: 2px 6px; border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .day-record .dr-rec-del:hover { background: #fdecea; color: var(--danger); }
 
   .history-empty { text-align: center; color: var(--text-secondary); padding: 40px 0; font-size: 14px; }
 
@@ -652,6 +666,14 @@
   .settings-card h3 { font-size: 14px; color: var(--text-secondary); margin-bottom: 10px; font-weight: 500; }
   .settings-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 16px; }
   .settings-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; }
+  .pw-form { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+  .pw-input {
+    width: 100%; box-sizing: border-box;
+    border: 2px solid #e3f2fd; border-radius: 10px;
+    padding: 10px 14px; font-size: 14px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .pw-input:focus { border-color: var(--primary); }
   .btn-primary {
     border: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     color: #fff; border-radius: 10px; padding: 10px 20px;
@@ -659,6 +681,38 @@
     transition: transform 0.15s, box-shadow 0.2s;
   }
   .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(33,150,243,0.3); }
+
+  /* Custom cups editor (settings page) */
+  .cups-editor { display: flex; flex-direction: column; gap: 8px; }
+  .cup-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; background: #f5faff; border-radius: 10px;
+  }
+  .cup-icon-input {
+    width: 42px; text-align: center; font-size: 18px;
+    border: 2px solid #e3f2fd; border-radius: 8px;
+    padding: 6px 4px; outline: none; transition: border-color 0.2s;
+  }
+  .cup-icon-input:focus { border-color: var(--primary); }
+  .cup-label-input {
+    flex: 1; min-width: 0; border: 2px solid #e3f2fd; border-radius: 8px;
+    padding: 6px 10px; font-size: 14px; outline: none; transition: border-color 0.2s;
+  }
+  .cup-label-input:focus { border-color: var(--primary); }
+  .cup-amount-input {
+    width: 70px; text-align: center; font-size: 14px; font-weight: 600;
+    border: 2px solid #e3f2fd; border-radius: 8px;
+    padding: 6px 4px; outline: none; transition: border-color 0.2s;
+  }
+  .cup-amount-input:focus { border-color: var(--primary); }
+  .cup-row .cup-unit { font-size: 13px; color: var(--text-secondary); flex-shrink: 0; }
+  .cup-del-btn {
+    width: 30px; height: 30px; border: none; background: #fdecea; color: var(--danger);
+    border-radius: 8px; font-size: 15px; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+  }
+  .cup-del-btn:hover { background: #ffcdd2; }
+  .cup-add-hint { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
 
   /* Admin link on login page */
   .admin-link {
@@ -1028,20 +1082,7 @@
         <span>🚰 快速记录</span>
         <button class="history-btn" onclick="openBackfill()">📅 补录历史</button>
       </h3>
-      <div class="add-buttons">
-        <button class="add-btn" onclick="addWater(150)">
-          <span class="icon">🥛</span><span>小杯</span><span class="ml">150ml</span>
-        </button>
-        <button class="add-btn" onclick="addWater(250)">
-          <span class="icon">☕</span><span>标准杯</span><span class="ml">250ml</span>
-        </button>
-        <button class="add-btn" onclick="addWater(400)">
-          <span class="icon">🍵</span><span>大杯</span><span class="ml">400ml</span>
-        </button>
-        <button class="add-btn" onclick="addWater(500)">
-          <span class="icon">🥤</span><span>水瓶</span><span class="ml">500ml</span>
-        </button>
-      </div>
+      <div class="add-buttons" id="quickAddBtns"></div>
       <div class="custom-add">
         <input type="number" id="customAmount" placeholder="自定义 ml 数量" min="1" max="5000">
         <button onclick="addCustom()">添加</button>
@@ -1155,8 +1196,25 @@
       <span class="label">🎯 每日目标</span>
       <div class="goal-control">
         <button onclick="changeGoal(-100)">−</button>
-        <span class="goal-value" id="goalValue">2000ml</span>
+        <input type="number" class="goal-input" id="goalInput" value="2000" min="500" max="10000" step="50"
+          onchange="applyGoalInput()"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();applyGoalInput();}"
+          title="可直接输入目标值（500-10000ml）">
+        <span class="goal-unit">ml</span>
         <button onclick="changeGoal(100)">+</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <h3>🔒 修改密码</h3>
+      <p class="settings-desc">定期修改密码可提升账号安全。新密码至少 6 位。</p>
+      <div class="pw-form">
+        <input type="password" id="pwOld" class="pw-input" placeholder="当前密码" autocomplete="current-password">
+        <input type="password" id="pwNew" class="pw-input" placeholder="新密码（至少 6 位）" autocomplete="new-password"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();changePassword();}">
+        <input type="password" id="pwNew2" class="pw-input" placeholder="确认新密码" autocomplete="new-password"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();changePassword();}">
+        <button class="btn-primary" onclick="changePassword()">🔑 确认修改</button>
       </div>
     </div>
 
@@ -1169,10 +1227,22 @@
         <input type="file" id="importFile" accept=".js,.json" style="display:none" onchange="importData(event)">
       </div>
     </div>
+
+    <div class="settings-card" style="grid-column: 1 / -1;">
+      <h3>🚰 快速记录自定义</h3>
+      <p class="settings-desc">自定义首页快速记录按钮的内容，最多 8 个。每行展示 4 个，超出自动换行。默认为：小杯 150ml / 标准杯 250ml / 大杯 400ml / 水瓶 500ml。</p>
+      <div class="cups-editor" id="cupsEditor"></div>
+      <div class="settings-actions" style="margin-top: 12px;">
+        <button class="btn-primary" id="addCupBtn" onclick="addCupRow()">＋ 添加按钮</button>
+        <button class="btn-primary" onclick="saveCustomCups()">💾 保存配置</button>
+        <button class="btn-primary" style="background: linear-gradient(135deg, #78909c, #546e7a);" onclick="resetCustomCups()">↩ 恢复默认</button>
+      </div>
+      <div class="cup-add-hint" id="cupHint"></div>
+    </div>
   </div>
 </section>
 
-<div class="footer">💧 喝水追踪器 · 数据存储于 Supabase 云端 · Vercel 托管</div>
+<div class="footer">💧 喝水追踪器 · 数据存储于 Supabase 云端 · Netlify 托管</div>
 
 </main>
 
@@ -1208,12 +1278,7 @@
     </div>
 
     <label style="font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 8px;">快速选择容量</label>
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
-      <button class="add-btn" onclick="backfillAdd(150)"><span class="icon">🥛</span><span>小杯</span><span class="ml">150ml</span></button>
-      <button class="add-btn" onclick="backfillAdd(250)"><span class="icon">☕</span><span>标准杯</span><span class="ml">250ml</span></button>
-      <button class="add-btn" onclick="backfillAdd(400)"><span class="icon">🍵</span><span>大杯</span><span class="ml">400ml</span></button>
-      <button class="add-btn" onclick="backfillAdd(500)"><span class="icon">🥤</span><span>水瓶</span><span class="ml">500ml</span></button>
-    </div>
+    <div id="backfillBtns" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;"></div>
 
     <div style="display: flex; gap: 8px; margin-bottom: 16px;">
       <input type="number" id="backfillAmount" placeholder="自定义 ml 数量" min="1" max="5000" style="flex: 1; border: 2px solid #e3f2fd; border-radius: 10px; padding: 10px 14px; font-size: 14px; outline: none;">
@@ -1241,6 +1306,30 @@
   var db = null;            // Supabase 客户端
   var currentUser = null;   // 当前登录用户名
   var cache = {};           // 当前用户数据内存缓存（结构与旧版 userData 一致）
+
+  // ---- 快速记录默认配置 ----
+  var DEFAULT_CUPS = [
+    { icon: '🥛', label: '小杯',   amount: 150 },
+    { icon: '☕', label: '标准杯', amount: 250 },
+    { icon: '🍵', label: '大杯',   amount: 400 },
+    { icon: '🥤', label: '水瓶',   amount: 500 }
+  ];
+  var MAX_CUSTOM_CUPS = 8;
+
+  // 返回当前用户的快速记录按钮配置（自定义优先，否则默认 4 个）
+  function getCups() {
+    var cc = cache._customCups;
+    if (cc && Array.isArray(cc) && cc.length > 0) return cc;
+    return DEFAULT_CUPS;
+  }
+  // 根据饮水量查找图标（用于今日记录和历史记录列表）
+  function getCupIcon(amount) {
+    var cups = getCups();
+    for (var i = 0; i < cups.length; i++) {
+      if (cups[i].amount === amount) return cups[i].icon;
+    }
+    return '💧';
+  }
 
   // ---- Supabase 初始化 ----
   function isSupabaseConfigured() {
@@ -1302,6 +1391,10 @@
       .select('*').eq('username', username);
     if (rerr) throw rerr;
     var data = { _goal: profile.goal, _firstLogin: profile.first_login, _lastActive: profile.last_active };
+    // 解析自定义快速记录配置（JSON 字符串或 null）
+    if (profile.custom_cups) {
+      try { data._customCups = JSON.parse(profile.custom_cups); } catch(e) { data._customCups = null; }
+    }
     (records || []).forEach(function(r) {
       var d = r.date;
       if (!data[d]) data[d] = [];
@@ -1470,14 +1563,20 @@
   }
 
   async function deleteRecord(id) {
-    var today = todayStr();
     try {
       var { error } = await db.from('water_records').delete()
         .eq('id', id).eq('username', currentUser);
       if (error) throw error;
-      if (cache[today]) cache[today] = cache[today].filter(function(r) { return r.id !== id; });
+      // 从缓存所有日期中移除该记录；某天删空后移除该日期键
+      Object.keys(cache).forEach(function(d) {
+        if (Array.isArray(cache[d])) {
+          cache[d] = cache[d].filter(function(r) { return r.id !== id; });
+          if (cache[d].length === 0) delete cache[d];
+        }
+      });
       renderAll();
       refreshRanking();
+      if (currentPage() === 'history') renderHistory();
     } catch(e) { showToast('删除失败：' + e.message); }
   }
 
@@ -1541,11 +1640,15 @@
     }
   }
 
-  async function changeGoal(delta) {
-    var oldGoal = cache._goal || DEFAULT_GOAL;
-    var goal = oldGoal + delta;
+  function syncGoalInput() {
+    var el = document.getElementById('goalInput');
+    if (el) el.value = getGoal();
+  }
+
+  async function saveGoal(goal) {
     if (goal < 500) goal = 500;
     if (goal > 10000) goal = 10000;
+    var oldGoal = cache._goal || DEFAULT_GOAL;
     cache._goal = goal;
     try {
       var { error } = await db.from('profiles').update({ goal: goal }).eq('username', currentUser);
@@ -1554,7 +1657,167 @@
       cache._goal = oldGoal;
       showToast('保存失败：' + e.message);
     }
+    syncGoalInput();
     renderAll();
+  }
+
+  function changeGoal(delta) {
+    saveGoal((cache._goal || DEFAULT_GOAL) + delta);
+  }
+
+  function applyGoalInput() {
+    var input = document.getElementById('goalInput');
+    var val = parseInt(input.value, 10);
+    if (!val || val < 500 || val > 10000) {
+      showToast('请输入 500-10000 之间的目标值');
+      syncGoalInput();
+      return;
+    }
+    if (val === (cache._goal || DEFAULT_GOAL)) { syncGoalInput(); return; }
+    saveGoal(val);
+    showToast('每日目标已更新为 ' + val + 'ml');
+  }
+
+  // ---- 修改密码 ----
+  async function changePassword() {
+    var oldPw = document.getElementById('pwOld').value;
+    var newPw = document.getElementById('pwNew').value;
+    var newPw2 = document.getElementById('pwNew2').value;
+    if (!oldPw) { showToast('请输入当前密码'); return; }
+    if (!newPw || newPw.length < 6) { showToast('新密码至少 6 位'); return; }
+    if (newPw !== newPw2) { showToast('两次输入的新密码不一致'); return; }
+    var btn = document.querySelector('.pw-form .btn-primary');
+    if (btn) { btn.disabled = true; btn.textContent = '修改中…'; }
+    try {
+      var client = initDb();
+      var { data: profile, error: perr } = await client.from('profiles')
+        .select('password_hash').eq('username', currentUser).maybeSingle();
+      if (perr) throw perr;
+      if (!profile) throw new Error('用户不存在');
+      var ok = await verifyPassword(oldPw, profile.password_hash);
+      if (!ok) { showToast('当前密码不正确'); return; }
+      var hash = await hashPassword(newPw);
+      var { error } = await client.from('profiles').update({ password_hash: hash })
+        .eq('username', currentUser);
+      if (error) throw error;
+      document.getElementById('pwOld').value = '';
+      document.getElementById('pwNew').value = '';
+      document.getElementById('pwNew2').value = '';
+      showToast('密码修改成功 🔒');
+    } catch(e) {
+      showToast('修改失败：' + e.message);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '🔑 确认修改'; }
+    }
+  }
+
+  // ---- 自定义快速记录 ----
+  function renderCupsEditor() {
+    var editor = document.getElementById('cupsEditor');
+    if (!editor) return;
+    var cups = getCups();
+    // 深拷贝避免编辑时直接改 cache
+    var editing = JSON.parse(JSON.stringify(cups));
+    editor._cups = editing;
+    renderCupRows(editor, editing);
+    updateCupHint();
+  }
+
+  function renderCupRows(editor, cups) {
+    editor.innerHTML = cups.map(function(c, i) {
+      return '<div class="cup-row">' +
+        '<input type="text" class="cup-icon-input" value="' + escHtml(c.icon) + '" maxlength="2" placeholder="💧">' +
+        '<input type="text" class="cup-label-input" value="' + escHtml(c.label) + '" maxlength="6" placeholder="名称">' +
+        '<input type="number" class="cup-amount-input" value="' + c.amount + '" min="1" max="5000" placeholder="ml">' +
+        '<span class="cup-unit">ml</span>' +
+        '<button class="cup-del-btn" onclick="removeCupRow(' + i + ')" title="删除">✕</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function collectCupsFromEditor() {
+    var editor = document.getElementById('cupsEditor');
+    if (!editor || !editor._cups) return [];
+    var rows = editor.querySelectorAll('.cup-row');
+    var cups = [];
+    rows.forEach(function(row) {
+      var icon = row.querySelector('.cup-icon-input').value.trim() || '💧';
+      var label = row.querySelector('.cup-label-input').value.trim() || '自定义';
+      var amount = parseInt(row.querySelector('.cup-amount-input').value, 10);
+      if (!amount || amount < 1) amount = 200;
+      if (amount > 5000) amount = 5000;
+      cups.push({ icon: icon, label: label, amount: amount });
+    });
+    return cups;
+  }
+
+  function addCupRow() {
+    var editor = document.getElementById('cupsEditor');
+    if (!editor) return;
+    var cups = collectCupsFromEditor();
+    if (cups.length >= MAX_CUSTOM_CUPS) { showToast('最多 ' + MAX_CUSTOM_CUPS + ' 个按钮'); return; }
+    cups.push({ icon: '💧', label: '自定义', amount: 200 });
+    editor._cups = cups;
+    renderCupRows(editor, cups);
+    updateCupHint();
+  }
+
+  function removeCupRow(idx) {
+    var editor = document.getElementById('cupsEditor');
+    if (!editor) return;
+    var cups = collectCupsFromEditor();
+    if (cups.length <= 1) { showToast('至少保留 1 个按钮'); return; }
+    cups.splice(idx, 1);
+    editor._cups = cups;
+    renderCupRows(editor, cups);
+    updateCupHint();
+  }
+
+  function updateCupHint() {
+    var hint = document.getElementById('cupHint');
+    var addBtn = document.getElementById('addCupBtn');
+    if (!hint) return;
+    var cups = collectCupsFromEditor();
+    hint.textContent = '当前 ' + cups.length + ' / ' + MAX_CUSTOM_CUPS + ' 个按钮';
+    if (addBtn) addBtn.disabled = cups.length >= MAX_CUSTOM_CUPS;
+  }
+
+  async function saveCustomCups() {
+    var cups = collectCupsFromEditor();
+    if (cups.length < 1) { showToast('至少保留 1 个按钮'); return; }
+    if (cups.length > MAX_CUSTOM_CUPS) { showToast('最多 ' + MAX_CUSTOM_CUPS + ' 个按钮'); return; }
+    // 校验数据
+    for (var i = 0; i < cups.length; i++) {
+      if (!cups[i].amount || cups[i].amount < 1 || cups[i].amount > 5000) {
+        showToast('第 ' + (i + 1) + ' 个按钮的容量无效（1-5000）'); return;
+      }
+    }
+    cache._customCups = cups;
+    try {
+      var { error } = await db.from('profiles')
+        .update({ custom_cups: JSON.stringify(cups) })
+        .eq('username', currentUser);
+      if (error) throw error;
+      renderQuickAdd();
+      showToast('快速记录配置已保存 ✅');
+    } catch(e) {
+      showToast('保存失败：' + e.message);
+    }
+  }
+
+  async function resetCustomCups() {
+    cache._customCups = null;
+    try {
+      var { error } = await db.from('profiles')
+        .update({ custom_cups: null })
+        .eq('username', currentUser);
+      if (error) throw error;
+      renderCupsEditor();
+      renderQuickAdd();
+      showToast('已恢复默认配置 ↩');
+    } catch(e) {
+      showToast('恢复失败：' + e.message);
+    }
   }
 
   // ---- Export / Import（用户级） ----
@@ -1630,11 +1893,30 @@
       var { error: goalErr } = await client.from('profiles').update({ goal: data._goal }).eq('username', username);
       if (goalErr) throw goalErr;
     }
+    // 更新自定义快速记录配置
+    if (data._customCups !== undefined) {
+      var cupsVal = data._customCups ? JSON.stringify(data._customCups) : null;
+      await client.from('profiles').update({ custom_cups: cupsVal }).eq('username', username);
+    }
     await loadUserData(username);
   }
 
   // ---- Backfill ----
+  function renderBackfillBtns() {
+    var container = document.getElementById('backfillBtns');
+    if (!container) return;
+    var cups = getCups();
+    container.innerHTML = cups.map(function(c) {
+      return '<button class="add-btn" onclick="backfillAdd(' + c.amount + ')">' +
+        '<span class="icon">' + c.icon + '</span>' +
+        '<span>' + escHtml(c.label) + '</span>' +
+        '<span class="ml">' + c.amount + 'ml</span>' +
+      '</button>';
+    }).join('');
+  }
+
   function openBackfill() {
+    renderBackfillBtns();
     document.getElementById('backfillDate').value = dateStr(-1);
     document.getElementById('backfillDate').max = todayStr();
     document.getElementById('backfillTime').value = '12:00';
@@ -1644,6 +1926,7 @@
   }
 
   function openBackfillForDate(date) {
+    renderBackfillBtns();
     document.getElementById('backfillDate').value = date;
     document.getElementById('backfillDate').max = todayStr();
     document.getElementById('backfillTime').value = '12:00';
@@ -1806,8 +2089,6 @@
     var goal = data._goal || DEFAULT_GOAL;
     var body = document.getElementById('historyBody');
     var pagBar = document.getElementById('historyPagination');
-    var cupIcons = { 150: '\u{1F963}', 250: '\u2615', 400: '\u{1F375}', 500: '\u{1F964}' };
-
     var allDates = getFilteredDates();
     var totalDays = allDates.length;
     var totalPages = Math.max(1, Math.ceil(totalDays / historyState.pageSize));
@@ -1829,10 +2110,11 @@
       var isExpanded = historyState.expandedDays[date];
 
       var recordsHtml = records.map(function(r) {
-        var icon = cupIcons[r.amount] || '\u{1F4A7}';
+        var icon = getCupIcon(r.amount);
         return '<div class="day-record">' +
           '<span class="dr-rec-time">' + icon + ' ' + r.time + '</span>' +
           '<span class="dr-rec-amount">' + r.amount + 'ml</span>' +
+          '<button class="dr-rec-del" onclick="deleteRecord(' + r.id + ')" title="删除这条记录">✕</button>' +
         '</div>';
       }).join('');
 
@@ -1971,7 +2253,7 @@
 
     document.getElementById('todayAmount').textContent = total;
     document.getElementById('goalText').textContent = '目标 ' + goal + 'ml';
-    document.getElementById('goalValue').textContent = goal + 'ml';
+    syncGoalInput();
 
     var percentEl = document.getElementById('percentText');
     percentEl.textContent = percent + '%';
@@ -1986,6 +2268,19 @@
     if (percent >= 100) showToast('🎉 太棒了！今日喝水目标已完成！');
   }
 
+  function renderQuickAdd() {
+    var container = document.getElementById('quickAddBtns');
+    if (!container) return;
+    var cups = getCups();
+    container.innerHTML = cups.map(function(c) {
+      return '<button class="add-btn" onclick="addWater(' + c.amount + ')">' +
+        '<span class="icon">' + c.icon + '</span>' +
+        '<span>' + escHtml(c.label) + '</span>' +
+        '<span class="ml">' + c.amount + 'ml</span>' +
+      '</button>';
+    }).join('');
+  }
+
   function renderLog() {
     var log = getTodayLog();
     var list = document.getElementById('logList');
@@ -1993,9 +2288,8 @@
       list.innerHTML = '<div class="log-empty">还没有记录，点击上方按钮开始 💧</div>';
       return;
     }
-    var cupIcons = { 150: '🥛', 250: '☕', 400: '🍵', 500: '🥤' };
     list.innerHTML = log.slice().reverse().map(function(r) {
-      var icon = cupIcons[r.amount] || '💧';
+      var icon = getCupIcon(r.amount);
       if (editingId === r.id) {
         return '<div class="log-item">' +
           '<div class="left"><span class="cup-icon">' + icon + '</span><span class="time">' + r.time + '</span></div>' +
@@ -2057,6 +2351,7 @@
     renderHeader();
     renderStatusBar();
     renderProgress();
+    renderQuickAdd();
     renderLog();
     renderTrendChart();
     renderCalendar();
@@ -2202,7 +2497,8 @@
     window.scrollTo(0, 0);
     if (page === 'history') renderHistory();
     if (page === 'settings') {
-      document.getElementById('goalValue').textContent = getGoal() + 'ml';
+      syncGoalInput();
+      renderCupsEditor();
     }
   }
   window.addEventListener('hashchange', renderRoute);
@@ -2316,6 +2612,7 @@
       (profiles || []).forEach(function(p) {
         var ud = {
           _goal: p.goal,
+          _customCups: p.custom_cups || null,
           _firstLogin: p.first_login,
           _lastActive: p.last_active,
           _passwordHash: p.password_hash
@@ -2410,6 +2707,7 @@
           username: u,
           password_hash: hash,
           goal: ud._goal || 2000,
+          custom_cups: ud._customCups || null,
           first_login: ud._firstLogin || nowISO,
           last_active: ud._lastActive || nowISO
         });
