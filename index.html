@@ -887,9 +887,89 @@
     .container { padding: 16px 12px 32px; }
   }
 
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+  /* ===== 喝友论坛页 ===== */
+  .forum-toolbar {
+    display: flex; gap: 10px; margin-bottom: 18px; align-items: center; flex-wrap: wrap;
+  }
+  .forum-search-input {
+    flex: 1; min-width: 200px;
+    border: 2px solid #e3f2fd; border-radius: 10px; padding: 10px 14px;
+    font-size: 14px; outline: none; color: var(--text);
+    transition: border-color 0.2s;
+  }
+  .forum-search-input:focus { border-color: var(--primary); }
+  .btn-refresh {
+    border: 2px solid #e3f2fd; background: var(--card); color: var(--text-secondary);
+    border-radius: 10px; padding: 10px 16px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-refresh:hover { border-color: var(--primary); color: var(--primary); }
+  .forum-list { display: flex; flex-direction: column; gap: 14px; }
+  .post-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .post-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
+  }
+  .post-author { font-size: 14px; font-weight: 600; color: var(--text); }
+  .post-time { font-size: 12px; color: var(--text-secondary); }
+  .post-del {
+    margin-left: auto; border: none; background: none; cursor: pointer;
+    font-size: 15px; opacity: 0.5; transition: opacity 0.2s; padding: 2px;
+  }
+  .post-del:hover { opacity: 1; }
+  .post-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; word-break: break-all; }
+  .post-content {
+    font-size: 14px; color: #4b5563; line-height: 1.7;
+    white-space: pre-wrap; word-break: break-word; margin-bottom: 12px;
+  }
+  .post-actions { display: flex; gap: 10px; border-top: 1px solid #f0f0f0; padding-top: 12px; }
+  .post-action {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid #e5e7eb; background: #fafafa; color: var(--text-secondary);
+    border-radius: 20px; padding: 5px 14px; font-size: 13px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .post-action:hover { border-color: var(--primary); color: var(--primary); }
+  .post-action.liked { border-color: var(--primary); background: #e3f2fd; color: var(--primary); font-weight: 600; }
+  .forum-empty {
+    background: var(--card); border-radius: var(--radius); padding: 48px 20px;
+    text-align: center; color: var(--text-secondary); font-size: 14px; box-shadow: var(--shadow);
+  }
+  .forum-loading { text-align: center; color: var(--text-secondary); padding: 24px 0; font-size: 13px; }
+  .forum-input {
+    width: 100%; border: 2px solid #e3f2fd; border-radius: 10px; padding: 10px 14px;
+    font-size: 14px; outline: none; color: var(--text); margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .forum-input:focus { border-color: var(--primary); }
+  .forum-textarea {
+    width: 100%; min-height: 120px; border: 2px solid #e3f2fd; border-radius: 10px;
+    padding: 12px 14px; font-size: 14px; outline: none; color: var(--text);
+    resize: vertical; margin-bottom: 12px; font-family: inherit; line-height: 1.6;
+    transition: border-color 0.2s;
+  }
+  .forum-textarea:focus { border-color: var(--primary); }
+  .comment-item { padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+  .comment-item:last-child { border-bottom: none; }
+  .comment-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+  .comment-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .comment-author { font-size: 13px; font-weight: 600; color: var(--text); }
+  .comment-time { font-size: 11px; color: var(--text-secondary); }
+  .comment-text { font-size: 13px; color: #4b5563; line-height: 1.6; word-break: break-word; white-space: pre-wrap; }
+  .comment-input-row { display: flex; gap: 8px; margin-top: 14px; }
+  .comment-input-row .forum-input { margin-bottom: 0; flex: 1; }
+  .comments-empty { text-align: center; color: var(--text-secondary); padding: 16px 0; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -901,6 +981,7 @@
     <div class="nav-menu">
       <a class="nav-link" data-page="home" href="#/home">首页</a>
       <a class="nav-link" data-page="history" href="#/history">历史记录</a>
+      <a class="nav-link" data-page="forum" href="#/forum">喝友论坛</a>
     </div>
     <div class="nav-right">
       <div class="nav-user" id="navUser" onclick="toggleUserMenu(event)">
@@ -1182,6 +1263,26 @@
   </div>
 </section>
 
+<!-- ===== 喝友论坛页 ===== -->
+<section class="page" id="page-forum">
+  <div class="page-head">
+    <div>
+      <h2>💬 喝友论坛</h2>
+      <p>分享喝水心得与趣事，和喝友们一起交流</p>
+    </div>
+    <button class="btn-primary" onclick="openPostModal()">✍️ 发帖</button>
+  </div>
+
+  <div class="forum-toolbar">
+    <input type="text" id="forumSearchInput" class="forum-search-input" placeholder="搜索帖子标题 / 内容 / 作者" maxlength="50"
+      onkeydown="if(event.key==='Enter')searchForum()">
+    <button class="btn-primary" onclick="searchForum()">🔍 查询</button>
+    <button class="btn-refresh" onclick="refreshForum()" title="刷新帖子列表">🔄 刷新</button>
+  </div>
+
+  <div class="forum-list" id="forumPostList"></div>
+</section>
+
 <!-- ===== 设置页 ===== -->
 <section class="page" id="page-settings">
   <div class="page-head">
@@ -1289,6 +1390,33 @@
 
     <div class="actions" style="justify-content: center;">
       <button class="btn btn-cancel" onclick="closeBackfill()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 发帖弹窗 -->
+<div class="modal-overlay" id="postOverlay">
+  <div class="modal" style="max-width: 520px; text-align: left; padding: 24px;">
+    <h3 style="text-align: center; margin-bottom: 16px;">✍️ 发布新帖</h3>
+    <input type="text" id="postTitle" class="forum-input" placeholder="标题（最多 60 字）" maxlength="60"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('postContent').focus();}">
+    <textarea id="postContent" class="forum-textarea" placeholder="分享你的喝水心得、趣事或问题…（最多 2000 字）" maxlength="2000"></textarea>
+    <div class="actions" style="justify-content: flex-end;">
+      <button class="btn btn-cancel" onclick="closePostModal()">取消</button>
+      <button class="btn btn-confirm" style="background: var(--primary);" onclick="submitForumPost()">发布</button>
+    </div>
+  </div>
+</div>
+
+<!-- 评论弹窗 -->
+<div class="modal-overlay" id="commentOverlay">
+  <div class="modal" style="max-width: 560px; text-align: left; padding: 24px; max-height: 80vh; overflow-y: auto;">
+    <h3 style="text-align: center; margin-bottom: 16px;">💬 评论</h3>
+    <div id="commentList"></div>
+    <div class="comment-input-row">
+      <input type="text" id="commentInput" class="forum-input" placeholder="写下你的评论…（最多 500 字）" maxlength="500"
+        onkeydown="if(event.key==='Enter')addForumComment()">
+      <button class="btn-primary" onclick="addForumComment()" style="white-space: nowrap;">发送</button>
     </div>
   </div>
 </div>
@@ -2474,8 +2602,236 @@
     rankTimer = setTimeout(function() { loadRanking(); }, 400);
   }
 
-  // ---- 路由（hash SPA：#/home · #/history · #/settings） ----
-  var PAGES = ['home', 'history', 'settings'];
+  // ---- Forum（喝友论坛） ----
+  // 说明：Supabase anon 禁用聚合函数（PGRST123），点赞数/评论数在前端对明细分组统计
+  var forumState = {
+    keyword: '',
+    posts: [],          // 过滤后的帖子列表
+    likeCount: {},      // post_id -> 点赞数
+    likedByMe: {},      // post_id -> 当前用户是否已点赞
+    commentCount: {},   // post_id -> 评论数
+    commentPostId: null // 评论弹窗当前对应的帖子
+  };
+
+  async function loadForumPosts() {
+    var client = initDb();
+    var kw = forumState.keyword.trim();
+    var { data: posts, error: pErr } = await client.from('forum_posts')
+      .select('*').order('created_at', { ascending: false }).limit(200);
+    if (pErr) throw pErr;
+
+    var { data: likes, error: lErr } = await client.from('forum_likes')
+      .select('post_id, username').limit(5000);
+    if (lErr) throw lErr;
+
+    var { data: comments, error: cErr } = await client.from('forum_comments')
+      .select('post_id').limit(5000);
+    if (cErr) throw cErr;
+
+    var likeCount = {}, likedByMe = {}, commentCount = {};
+    (likes || []).forEach(function(l) {
+      likeCount[l.post_id] = (likeCount[l.post_id] || 0) + 1;
+      if (l.username === currentUser) likedByMe[l.post_id] = true;
+    });
+    (comments || []).forEach(function(c) {
+      commentCount[c.post_id] = (commentCount[c.post_id] || 0) + 1;
+    });
+
+    var list = (posts || []).filter(function(p) {
+      if (!kw) return true;
+      return (p.title || '').indexOf(kw) >= 0 ||
+             (p.content || '').indexOf(kw) >= 0 ||
+             (p.author || '').indexOf(kw) >= 0;
+    });
+
+    forumState.posts = list;
+    forumState.likeCount = likeCount;
+    forumState.likedByMe = likedByMe;
+    forumState.commentCount = commentCount;
+    renderForumPosts();
+  }
+
+  function renderForumPosts() {
+    var listEl = document.getElementById('forumPostList');
+    if (!listEl) return;
+    var list = forumState.posts || [];
+    if (list.length === 0) {
+      listEl.innerHTML = '<div class="forum-empty">' +
+        (forumState.keyword ? '未找到相关帖子，换个关键词试试' : '还没有帖子，快来发第一帖吧！✍️') +
+        '</div>';
+      return;
+    }
+    listEl.innerHTML = list.map(function(p) {
+      var liked = !!forumState.likedByMe[p.id];
+      var likeCount = forumState.likeCount[p.id] || 0;
+      var commentCount = forumState.commentCount[p.id] || 0;
+      var delBtn = (p.author === currentUser)
+        ? '<button class="post-del" onclick="deleteForumPost(' + p.id + ')" title="删除帖子">🗑</button>' : '';
+      return '' +
+        '<div class="post-card">' +
+          '<div class="post-header">' +
+            '<span class="post-avatar">' + escHtml((p.author || '?').charAt(0).toUpperCase()) + '</span>' +
+            '<span class="post-author">' + escHtml(p.author) + '</span>' +
+            '<span class="post-time">' + fmtPostTime(p.created_at) + '</span>' + delBtn +
+          '</div>' +
+          '<div class="post-title">' + escHtml(p.title) + '</div>' +
+          '<div class="post-content">' + escHtml(p.content) + '</div>' +
+          '<div class="post-actions">' +
+            '<button class="post-action' + (liked ? ' liked' : '') + '" onclick="toggleForumLike(' + p.id + ', this)">' +
+              '👍 <span>' + likeCount + '</span>' +
+            '</button>' +
+            '<button class="post-action" onclick="openForumComments(' + p.id + ')">' +
+              '💬 <span>' + commentCount + '</span>' +
+            '</button>' +
+          '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function fmtPostTime(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    var now = new Date();
+    var diff = now - d;
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前';
+    if (now.getDate() === d.getDate() && now.getMonth() === d.getMonth() && now.getFullYear() === d.getFullYear()) {
+      return '今天 ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    }
+    var md = (d.getMonth() + 1) + '-' + pad2(d.getDate());
+    if (d.getFullYear() === now.getFullYear()) return md + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    return d.getFullYear() + '-' + md + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+
+  function renderForumPage() {
+    var listEl = document.getElementById('forumPostList');
+    if (listEl) listEl.innerHTML = '<div class="forum-loading">加载帖子中…</div>';
+    loadForumPosts().catch(function(e) {
+      showToast('加载论坛失败：' + e.message);
+    });
+  }
+
+  // ---- 发帖 ----
+  function openPostModal() {
+    document.getElementById('postTitle').value = '';
+    document.getElementById('postContent').value = '';
+    document.getElementById('postOverlay').classList.add('show');
+    setTimeout(function() { document.getElementById('postTitle').focus(); }, 100);
+  }
+  function closePostModal() {
+    document.getElementById('postOverlay').classList.remove('show');
+  }
+  async function submitForumPost() {
+    var title = document.getElementById('postTitle').value.trim();
+    var content = document.getElementById('postContent').value.trim();
+    if (!title) { showToast('请输入标题'); return; }
+    if (!content) { showToast('请输入内容'); return; }
+    if (title.length > 60) { showToast('标题最多 60 字'); return; }
+    if (content.length > 2000) { showToast('内容最多 2000 字'); return; }
+    var client = initDb();
+    var { error } = await client.from('forum_posts').insert({ author: currentUser, title: title, content: content });
+    if (error) { showToast('发布失败：' + error.message); return; }
+    closePostModal();
+    showToast('发布成功 🎉');
+    loadForumPosts().catch(function(e) { showToast('刷新失败：' + e.message); });
+  }
+
+  // ---- 点赞 / 取消点赞 ----
+  async function toggleForumLike(postId, btn) {
+    var client = initDb();
+    var already = !!forumState.likedByMe[postId];
+    if (already) {
+      var { error } = await client.from('forum_likes').delete().eq('post_id', postId).eq('username', currentUser);
+      if (error) { showToast('操作失败：' + error.message); return; }
+      forumState.likedByMe[postId] = false;
+      forumState.likeCount[postId] = Math.max(0, (forumState.likeCount[postId] || 0) - 1);
+    } else {
+      var ins = await client.from('forum_likes').insert({ post_id: postId, username: currentUser });
+      if (ins.error) { showToast('操作失败：' + ins.error.message); return; }
+      forumState.likedByMe[postId] = true;
+      forumState.likeCount[postId] = (forumState.likeCount[postId] || 0) + 1;
+    }
+    if (btn) {
+      btn.classList.toggle('liked', forumState.likedByMe[postId]);
+      var span = btn.querySelector('span');
+      if (span) span.textContent = forumState.likeCount[postId] || 0;
+    }
+  }
+
+  // ---- 评论 ----
+  async function openForumComments(postId) {
+    forumState.commentPostId = postId;
+    document.getElementById('commentInput').value = '';
+    document.getElementById('commentList').innerHTML = '<div class="forum-loading">加载评论中…</div>';
+    document.getElementById('commentOverlay').classList.add('show');
+    var client = initDb();
+    var { data: comments, error } = await client.from('forum_comments')
+      .select('*').eq('post_id', postId).order('created_at', { ascending: true }).limit(200);
+    if (error) {
+      document.getElementById('commentList').innerHTML = '<div class="comments-empty">评论加载失败：' + escHtml(error.message) + '</div>';
+      return;
+    }
+    renderForumComments(comments || []);
+  }
+  function closeForumComments() {
+    document.getElementById('commentOverlay').classList.remove('show');
+  }
+  function renderForumComments(comments) {
+    var listEl = document.getElementById('commentList');
+    if (comments.length === 0) {
+      listEl.innerHTML = '<div class="comments-empty">还没有评论，来抢沙发～</div>';
+      return;
+    }
+    listEl.innerHTML = comments.map(function(c) {
+      return '' +
+        '<div class="comment-item">' +
+          '<div class="comment-meta">' +
+            '<span class="comment-avatar">' + escHtml((c.username || '?').charAt(0).toUpperCase()) + '</span>' +
+            '<span class="comment-author">' + escHtml(c.username) + '</span>' +
+            '<span class="comment-time">' + fmtPostTime(c.created_at) + '</span>' +
+          '</div>' +
+          '<div class="comment-text">' + escHtml(c.content) + '</div>' +
+        '</div>';
+    }).join('');
+  }
+  async function addForumComment() {
+    var postId = forumState.commentPostId;
+    if (!postId) return;
+    var content = document.getElementById('commentInput').value.trim();
+    if (!content) { showToast('请输入评论内容'); return; }
+    if (content.length > 500) { showToast('评论最多 500 字'); return; }
+    var client = initDb();
+    var { error } = await client.from('forum_comments').insert({ post_id: postId, username: currentUser, content: content });
+    if (error) { showToast('评论失败：' + error.message); return; }
+    document.getElementById('commentInput').value = '';
+    openForumComments(postId);
+    forumState.commentCount[postId] = (forumState.commentCount[postId] || 0) + 1;
+  }
+
+  // ---- 删除帖子（仅作者本人） ----
+  async function deleteForumPost(postId) {
+    if (!window.confirm('确定删除该帖子吗？它的点赞和评论也会一并删除，且不可恢复。')) return;
+    var client = initDb();
+    var { error } = await client.from('forum_posts').delete().eq('id', postId);
+    if (error) { showToast('删除失败：' + error.message); return; }
+    showToast('帖子已删除');
+    loadForumPosts().catch(function(e) { showToast('刷新失败：' + e.message); });
+  }
+
+  // ---- 查询 / 刷新 ----
+  function searchForum() {
+    forumState.keyword = document.getElementById('forumSearchInput').value.trim();
+    loadForumPosts().catch(function(e) { showToast('查询失败：' + e.message); });
+  }
+  function refreshForum() {
+    document.getElementById('forumSearchInput').value = '';
+    forumState.keyword = '';
+    loadForumPosts().catch(function(e) { showToast('刷新失败：' + e.message); });
+  }
+
+  // ---- 路由（hash SPA：#/home · #/history · #/forum · #/settings） ----
+  var PAGES = ['home', 'history', 'forum', 'settings'];
   function currentPage() {
     var h = (location.hash || '').replace(/^#\/?/, '');
     return PAGES.indexOf(h) >= 0 ? h : 'home';
@@ -2496,6 +2852,7 @@
     });
     window.scrollTo(0, 0);
     if (page === 'history') renderHistory();
+    if (page === 'forum') renderForumPage();
     if (page === 'settings') {
       syncGoalInput();
       renderCupsEditor();
@@ -2531,6 +2888,12 @@
   });
   document.getElementById('backfillOverlay').addEventListener('click', function(e) {
     if (e.target === this) closeBackfill();
+  });
+  document.getElementById('postOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closePostModal();
+  });
+  document.getElementById('commentOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeForumComments();
   });
   document.getElementById('backfillDate').addEventListener('change', updateBackfillPreview);
   document.getElementById('backfillTime').addEventListener('change', updateBackfillPreview);

@@ -68,3 +68,62 @@ create policy "records_public_all"
   for all
   using (true)
   with check (true);
+
+-- ============================================================
+-- 5) 喝友论坛表
+-- forum_posts     帖子（author=发帖人，title+content）
+-- forum_likes     点赞（每用户每帖最多一次，unique 约束）
+-- forum_comments  评论
+-- ============================================================
+create table if not exists public.forum_posts (
+  id         bigint generated always as identity primary key,
+  author     text not null references public.profiles(username) on delete cascade,
+  title      text not null check (char_length(title) <= 60),
+  content    text not null check (char_length(content) <= 2000),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.forum_likes (
+  id         bigint generated always as identity primary key,
+  post_id    bigint not null references public.forum_posts(id) on delete cascade,
+  username   text not null references public.profiles(username) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (post_id, username)
+);
+
+create table if not exists public.forum_comments (
+  id         bigint generated always as identity primary key,
+  post_id    bigint not null references public.forum_posts(id) on delete cascade,
+  username   text not null references public.profiles(username) on delete cascade,
+  content    text not null check (char_length(content) <= 500),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_forum_posts_created   on public.forum_posts (created_at desc);
+create index if not exists idx_forum_likes_post      on public.forum_likes (post_id);
+create index if not exists idx_forum_comments_post   on public.forum_comments (post_id);
+
+alter table public.forum_posts    enable row level security;
+alter table public.forum_likes    enable row level security;
+alter table public.forum_comments enable row level security;
+
+drop policy if exists "forum_posts_public_all" on public.forum_posts;
+create policy "forum_posts_public_all"
+  on public.forum_posts
+  for all
+  using (true)
+  with check (true);
+
+drop policy if exists "forum_likes_public_all" on public.forum_likes;
+create policy "forum_likes_public_all"
+  on public.forum_likes
+  for all
+  using (true)
+  with check (true);
+
+drop policy if exists "forum_comments_public_all" on public.forum_comments;
+create policy "forum_comments_public_all"
+  on public.forum_comments
+  for all
+  using (true)
+  with check (true);
