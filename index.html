@@ -970,6 +970,50 @@
   .comment-input-row { display: flex; gap: 8px; margin-top: 14px; }
   .comment-input-row .forum-input { margin-bottom: 0; flex: 1; }
   .comments-empty { text-align: center; color: var(--text-secondary); padding: 16px 0; font-size: 13px; }
+
+  /* ===== 荣誉墙页 ===== */
+  .honor-mine, .honor-rank, .honor-rules {
+    background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+  }
+  .honor-mine { margin-bottom: 16px; }
+  .honor-mine h3, .honor-rank h3, .honor-rules h3 { font-size: 15px; margin-bottom: 14px; }
+  .honor-badges { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .honor-badge-card {
+    background: linear-gradient(135deg, #fff8e1, #fff3cd); border: 1px solid #ffe082;
+    border-radius: 12px; padding: 14px 10px; text-align: center;
+  }
+  .hb-icon { font-size: 26px; }
+  .hb-name { font-size: 12px; color: var(--text-secondary); margin: 6px 0 2px; }
+  .hb-count { font-size: 22px; font-weight: 700; color: var(--text); }
+  .honor-badge-card.hb-total {
+    background: linear-gradient(135deg, #e3f2fd, #e8f5e9); border-color: #b3e5fc;
+  }
+  .honor-rank { margin-bottom: 16px; }
+  .honor-rank-table { overflow-x: auto; }
+  .honor-rank-head, .honor-rank-row {
+    display: grid; grid-template-columns: 70px 1fr repeat(4, 60px) 70px;
+    align-items: center; gap: 6px; padding: 10px 12px; font-size: 13px; min-width: 520px;
+  }
+  .honor-rank-head {
+    background: #f5f7fa; border-radius: 10px; color: var(--text-secondary); font-weight: 600;
+  }
+  .honor-rank-row { border-bottom: 1px solid #f5f5f5; }
+  .honor-rank-row:last-child { border-bottom: none; }
+  .honor-rank-row.me { background: #e3f2fd; border-radius: 8px; }
+  .c-rank { font-weight: 700; text-align: center; }
+  .c-user { font-weight: 600; word-break: break-all; }
+  .c-badge { text-align: center; color: var(--text-secondary); }
+  .c-total { text-align: center; font-weight: 700; }
+  .honor-me-tag {
+    background: var(--primary); color: #fff; font-size: 10px;
+    border-radius: 8px; padding: 1px 6px; margin-left: 4px;
+  }
+  .honor-rank-empty { text-align: center; color: var(--text-secondary); padding: 30px 0; font-size: 13px; }
+  .honor-rules p { font-size: 13px; color: var(--text-secondary); line-height: 1.9; margin-bottom: 6px; }
+  .honor-rules b { color: var(--text); }
+  @media (max-width: 640px) {
+    .honor-badges { grid-template-columns: repeat(2, 1fr); }
+  }
 </style>
 </head>
 <body>
@@ -980,6 +1024,7 @@
     <a class="brand" href="#/home">💧 喝了么</a>
     <div class="nav-menu">
       <a class="nav-link" data-page="home" href="#/home">首页</a>
+      <a class="nav-link" data-page="honor" href="#/honor">荣誉墙</a>
       <a class="nav-link" data-page="history" href="#/history">历史记录</a>
       <a class="nav-link" data-page="forum" href="#/forum">喝友论坛</a>
     </div>
@@ -1224,6 +1269,44 @@
       </div>
     </div>
   </div>
+  </div>
+</section>
+
+<!-- ===== 荣誉墙页 ===== -->
+<section class="page" id="page-honor">
+  <div class="page-head">
+    <div>
+      <h2>🏆 荣誉墙</h2>
+      <p>每日 / 每周 / 每月自动评选喝水达人，达标即可获得勋章</p>
+    </div>
+  </div>
+
+  <div class="honor-mine">
+    <h3>🌟 我的勋章</h3>
+    <div class="honor-badges" id="honorMyBadges"></div>
+  </div>
+
+  <div class="honor-rank">
+    <h3>🏅 勋章总榜 TOP 50</h3>
+    <div class="honor-rank-table">
+      <div class="honor-rank-head">
+        <span class="c-rank">排名</span>
+        <span class="c-user">用户</span>
+        <span class="c-badge">日榜</span>
+        <span class="c-badge">周榜</span>
+        <span class="c-badge">月榜</span>
+        <span class="c-badge">达标</span>
+        <span class="c-total">总数</span>
+      </div>
+      <div id="honorRankList"></div>
+    </div>
+  </div>
+
+  <div class="honor-rules">
+    <h3>📋 规则说明</h3>
+    <p>· 每日 01:00 自动统计昨日喝水量，生成日榜 TOP3；每周一 01:00 生成上周周榜；每月 1 号 01:00 生成上月月榜。上榜用户对应勋章 +1。</p>
+    <p>· 每日 01:30 统计昨日达标情况（当日饮水量 ≥ 每日目标），达标用户「达标勋章」+1。</p>
+    <p>· 榜单与勋章在生成后<b>立即冻结</b>：之后再补录或修改历史数据，不会影响已生成的榜单与勋章次数。</p>
   </div>
 </section>
 
@@ -2830,8 +2913,95 @@
     loadForumPosts().catch(function(e) { showToast('刷新失败：' + e.message); });
   }
 
-  // ---- 路由（hash SPA：#/home · #/history · #/forum · #/settings） ----
-  var PAGES = ['home', 'history', 'forum', 'settings'];
+  // ---- Honor（荣誉墙） ----
+  // 勋章类型：daily=日榜 / weekly=周榜 / monthly=月榜 / achieve=达标
+  var BADGE_TYPES = [
+    { key: 'daily',   icon: '🥇', name: '日榜勋章' },
+    { key: 'weekly',  icon: '🥈', name: '周榜勋章' },
+    { key: 'monthly', icon: '🥉', name: '月榜勋章' },
+    { key: 'achieve', icon: '✅', name: '达标勋章' }
+  ];
+
+  function renderHonorPage() {
+    loadHonorWall().catch(function(e) {
+      showToast('加载荣誉墙失败：' + e.message);
+    });
+  }
+
+  // 拉取全部勋章计数（表已按用户×类型存储，无聚合需求，规避 PGRST123）
+  async function loadHonorWall() {
+    var client = initDb();
+    var { data: badges, error } = await client.from('honor_badges')
+      .select('username, badge_type, count').limit(1000);
+    if (error) throw error;
+
+    var perUser = {}; // username -> { daily, weekly, monthly, achieve, total }
+    (badges || []).forEach(function(b) {
+      var u = perUser[b.username] || (perUser[b.username] = { daily: 0, weekly: 0, monthly: 0, achieve: 0, total: 0 });
+      var c = b.count || 0;
+      if (BADGE_TYPES.some(function(t) { return t.key === b.badge_type; })) {
+        u[b.badge_type] = c;
+        u.total += c;
+      }
+    });
+
+    renderHonorMine(perUser[currentUser] || null);
+    renderHonorRank(perUser);
+  }
+
+  function renderHonorMine(mine) {
+    var el = document.getElementById('honorMyBadges');
+    if (!el) return;
+    if (!mine) mine = { daily: 0, weekly: 0, monthly: 0, achieve: 0, total: 0 };
+    el.innerHTML = BADGE_TYPES.map(function(t) {
+      return '' +
+        '<div class="honor-badge-card">' +
+          '<div class="hb-icon">' + t.icon + '</div>' +
+          '<div class="hb-name">' + t.name + '</div>' +
+          '<div class="hb-count">' + (mine[t.key] || 0) + '</div>' +
+        '</div>';
+    }).join('') +
+      '<div class="honor-badge-card hb-total">' +
+        '<div class="hb-icon">🌟</div>' +
+        '<div class="hb-name">勋章总数</div>' +
+        '<div class="hb-count">' + mine.total + '</div>' +
+      '</div>';
+  }
+
+  function renderHonorRank(perUser) {
+    var el = document.getElementById('honorRankList');
+    if (!el) return;
+    var list = Object.keys(perUser).map(function(name) {
+      var u = perUser[name];
+      return {
+        username: name,
+        daily: u.daily, weekly: u.weekly, monthly: u.monthly, achieve: u.achieve,
+        total: u.daily + u.weekly + u.monthly + u.achieve
+      };
+    }).sort(function(a, b) { return b.total - a.total; }).slice(0, 50);
+
+    if (list.length === 0) {
+      el.innerHTML = '<div class="honor-rank-empty">暂无勋章数据，明日 01:00 首期榜单将自动生成</div>';
+      return;
+    }
+    el.innerHTML = list.map(function(u, i) {
+      var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+      var me = u.username === currentUser;
+      return '' +
+        '<div class="honor-rank-row' + (me ? ' me' : '') + '">' +
+          '<span class="c-rank">' + medal + '</span>' +
+          '<span class="c-user">' + escHtml(u.username) + (me ? ' <span class="honor-me-tag">我</span>' : '') + '</span>' +
+          '<span class="c-badge">' + u.daily + '</span>' +
+          '<span class="c-badge">' + u.weekly + '</span>' +
+          '<span class="c-badge">' + u.monthly + '</span>' +
+          '<span class="c-badge">' + u.achieve + '</span>' +
+          '<span class="c-total">' + u.total + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  // ---- 路由（hash SPA：#/home · #/honor · #/history · #/forum · #/settings） ----
+  var PAGES = ['home', 'honor', 'history', 'forum', 'settings'];
   function currentPage() {
     var h = (location.hash || '').replace(/^#\/?/, '');
     return PAGES.indexOf(h) >= 0 ? h : 'home';
@@ -2851,6 +3021,7 @@
       a.classList.toggle('active', a.getAttribute('data-page') === page);
     });
     window.scrollTo(0, 0);
+    if (page === 'honor') renderHonorPage();
     if (page === 'history') renderHistory();
     if (page === 'forum') renderForumPage();
     if (page === 'settings') {
