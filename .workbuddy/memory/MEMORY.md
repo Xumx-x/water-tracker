@@ -7,7 +7,7 @@
 ## 容量配置（产品约定，勿改）
 - 小杯 150ml / 标准杯 250ml / 大杯 400ml / 瓶装 500ml，每日目标默认 2000ml（范围 500~10000）
 
-## 云端版架构（v11.0）
+## 云端版架构（v11.2）
 - 前端：Vercel 静态托管，supabase-js 走 CDN UMD，零构建
 - 数据库：Supabase PostgreSQL，两张表
   - `profiles`：username(PK) / password_hash(PBKDF2 格式 `pbkdf2$100000$salt$hex`) / goal / first_login / last_active
@@ -15,8 +15,11 @@
 - 鉴权：纯前端用户名+密码，PBKDF2(10万迭代) 校验，RLS 全开（应用层隔离），适合亲友/团队内部
 - 数据流：内存缓存同步渲染 UI + 操作异步精确写库；记录 id 用数据库自增主键
 - 后台管理：聚合查询 + 重置密码（🔑）/删除用户（🗑）/全量备份恢复
+- **🏆 排行榜（v11.1）**：右侧栏 Top10，每日/每周/每月 tab（自然周/自然月），自己高亮+名次提示；登录/数据变更后刷新（400ms 防抖）
+- **🖥️ 布局（v11.2）**：Gitee 风格——固定 48px 深色导航栏（#1f2733，z-index 900）+ 居中容器（max-width 1200px）+ hash 路由三页面 `#/home` `#/history` `#/settings`；历史页含近 30 天趋势图+内联历史列表；设置页含每日目标+数据导入导出；用户下拉菜单（设置入口）+独立退出按钮
+- **⚠️ 已知坑**：Supabase anon 默认禁用数据库聚合函数（PGRST123），排行榜等聚合需求必须前端拉明细再 JS 分组，或建 RPC/视图
 - 部署步骤见 DEPLOY.md；备份格式向后兼容旧版，旧格式导入默认密码 water123
 
 ## 用户环境
 - Windows，工作区 C:\soft\water-tracker
-- 用户尚无 Supabase 项目，部署需按 DEPLOY.md 引导完成
+- 已有 Supabase 项目（URL/anon key 已填入 index.html，表已建且有数据）；Vercel 部署状态待确认
