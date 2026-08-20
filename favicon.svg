@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="dropGrad" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0%" stop-color="#7ED3FF"/>
+      <stop offset="45%" stop-color="#29A8F0"/>
+      <stop offset="100%" stop-color="#0B6FBF"/>
+    </linearGradient>
+    <radialGradient id="glowGrad" cx="0.35" cy="0.3" r="0.9">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- 水滴主体 -->
+  <path d="M32 4 C38 12 52 21 52 38 A20 20 0 1 1 12 38 C12 21 26 12 32 4 Z"
+        fill="url(#dropGrad)"/>
+  <!-- 高光（左上） -->
+  <ellipse cx="24.5" cy="27" rx="6" ry="10" fill="#FFFFFF" opacity="0.55"
+           transform="rotate(-22 24.5 27)"/>
+  <!-- 底部柔光 -->
+  <ellipse cx="30" cy="44" rx="10" ry="7" fill="url(#glowGrad)"/>
+</svg>

@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💧 喝了么</title>
+<title>喝了么</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="shortcut icon" href="favicon.ico">
 <script>
   /* ============================================================
    * 喝了么 · 云端版（Netlify + Supabase）
@@ -127,18 +129,17 @@
 
   /* Two-column layout */
   .layout {
-    max-width: 1100px;
-    margin: 0 auto;
     width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
-    align-items: start;
+    align-items: stretch;
   }
   .col-left, .col-right {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    height: 100%;
   }
 
   /* 页面标题区（page-head） */
@@ -239,7 +240,7 @@
     transition: opacity 0.2s;
   }
   .log-card h3 .clear-btn:hover { opacity: 0.7; }
-  .log-list { display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; }
+  .log-list { display: flex; flex-direction: column; gap: 8px; height: 240px; overflow-y: auto; }
   .log-item {
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 14px; background: #f5faff; border-radius: 10px;
@@ -290,7 +291,11 @@
     color: #fff; box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
   }
   .rank-range { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; text-align: center; }
-  .rank-list { display: flex; flex-direction: column; gap: 4px; }
+  /* 排行榜高度固定：正好展示 Top10（10 行 × 38px + 9 × 4px gap ≈ 416px），多余行滚动 */
+  .rank-list {
+    display: flex; flex-direction: column; gap: 4px;
+    height: 416px; overflow-y: auto;
+  }
   .rank-row {
     display: flex; align-items: center; gap: 8px;
     padding: 6px 8px; border-radius: 10px; font-size: 13px;
@@ -317,7 +322,7 @@
   }
   .rank-amt { font-weight: 700; color: var(--primary-dark); flex-shrink: 0; }
   .rank-cups { font-size: 11px; color: var(--text-secondary); flex-shrink: 0; }
-  .rank-empty { text-align: center; color: var(--text-secondary); font-size: 12px; padding: 14px 0; line-height: 1.8; }
+  .rank-empty { text-align: center; color: var(--text-secondary); font-size: 12px; padding: 14px 0; line-height: 1.8; margin: auto; }
   .rank-retry {
     border: 1px solid var(--primary); color: var(--primary); background: none;
     border-radius: 8px; padding: 3px 12px; cursor: pointer; font-size: 12px; margin-top: 6px;
@@ -366,6 +371,33 @@
     transition: opacity 0.2s;
   }
   .chart-card h3 .history-btn:hover { opacity: 0.7; }
+
+  /* 近 7 天喝水折线图卡片（首页右列，替代日历位置） */
+  .week-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 20px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; flex: 1;
+    min-height: 300px;
+  }
+  .week-card h3 {
+    font-size: 14px; color: var(--text-secondary); margin-bottom: 14px; font-weight: 500;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .week-chart { flex: 1; min-height: 240px; display: flex; align-items: center; }
+  .week-chart svg { width: 100%; height: auto; display: block; }
+  .week-chart .wl-line { fill: none; stroke: url(#weekGrad); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .week-chart .wl-goal { stroke: #ffb74d; stroke-width: 1.5; stroke-dasharray: 6 5; }
+  .week-chart .wl-dot { fill: #fff; stroke: var(--primary); stroke-width: 2.5; }
+  .week-chart .wl-dot.today { fill: var(--primary-dark); stroke: #fff; stroke-width: 2.5; }
+  .week-chart .wl-dot.complete { fill: var(--success); stroke: #fff; stroke-width: 2; }
+  .week-chart text { font-family: inherit; }
+
+  /* 历史页：日历（月记录查看）与历史记录列表并排 */
+  .his-layout { grid-template-columns: 380px 1fr; align-items: stretch; }
+  .his-layout .cal-card, .his-layout .history-card { height: 100%; }
+  .history-card { display: flex; flex-direction: column; }
+  .history-card .hm-body { flex: 1; }
+
   .chart {
     display: flex; justify-content: space-between; align-items: flex-end;
     height: 140px; gap: 6px; padding-bottom: 24px; position: relative;
@@ -882,6 +914,7 @@
   /* Responsive: single column on narrow screens */
   @media (max-width: 860px) {
     .layout { grid-template-columns: 1fr; }
+    .his-layout { grid-template-columns: 1fr; }
   }
   @media (max-width: 480px) {
     .add-buttons { grid-template-columns: repeat(2, 1fr); }
@@ -1258,32 +1291,12 @@
       <div class="rank-loading" id="rankLoading">⏳ 加载中…</div>
     </div>
 
-    <div class="cal-card">
-      <div class="cal-header">
-        <span class="cal-title" id="calTitle">2026年8月</span>
-        <div class="cal-nav">
-          <button onclick="calChangeMonth(-1)" title="上个月">‹</button>
-          <button class="cal-today-btn" onclick="calGoToday()">今月</button>
-          <button onclick="calChangeMonth(1)" title="下个月">›</button>
-        </div>
-      </div>
-      <div class="cal-stats" id="calStats"></div>
-      <div class="cal-weekdays">
-        <div class="cal-weekday">日</div>
-        <div class="cal-weekday">一</div>
-        <div class="cal-weekday">二</div>
-        <div class="cal-weekday">三</div>
-        <div class="cal-weekday">四</div>
-        <div class="cal-weekday">五</div>
-        <div class="cal-weekday">六</div>
-      </div>
-      <div class="cal-grid" id="calGrid"></div>
-      <div class="cal-legend">
-        <div class="cal-legend-item"><span class="cal-legend-box l-none"></span>无记录</div>
-        <div class="cal-legend-item"><span class="cal-legend-box l-some"></span>有记录</div>
-        <div class="cal-legend-item"><span class="cal-legend-box l-good"></span>过半</div>
-        <div class="cal-legend-item"><span class="cal-legend-box l-great"></span>达标</div>
-      </div>
+    <div class="week-card">
+      <h3>
+        <span>📈 近 7 天喝水趋势</span>
+        <span class="trend-goal" id="weekGoal"></span>
+      </h3>
+      <div class="week-chart" id="weekChart"></div>
     </div>
   </div>
   </div>
@@ -1344,7 +1357,38 @@
     <div class="chart trend-chart" id="trendChart"></div>
   </div>
 
-  <div class="history-card">
+  <div class="layout his-layout">
+    <!-- ===== 月记录查看（日历） ===== -->
+    <div class="cal-card">
+      <div class="cal-header">
+        <span class="cal-title" id="calTitle">2026年8月</span>
+        <div class="cal-nav">
+          <button onclick="calChangeMonth(-1)" title="上个月">‹</button>
+          <button class="cal-today-btn" onclick="calGoToday()">今月</button>
+          <button onclick="calChangeMonth(1)" title="下个月">›</button>
+        </div>
+      </div>
+      <div class="cal-stats" id="calStats"></div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">日</div>
+        <div class="cal-weekday">一</div>
+        <div class="cal-weekday">二</div>
+        <div class="cal-weekday">三</div>
+        <div class="cal-weekday">四</div>
+        <div class="cal-weekday">五</div>
+        <div class="cal-weekday">六</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><span class="cal-legend-box l-none"></span>无记录</div>
+        <div class="cal-legend-item"><span class="cal-legend-box l-some"></span>有记录</div>
+        <div class="cal-legend-item"><span class="cal-legend-box l-good"></span>过半</div>
+        <div class="cal-legend-item"><span class="cal-legend-box l-great"></span>达标</div>
+      </div>
+    </div>
+
+    <!-- ===== 历史记录查看列表 ===== -->
+    <div class="history-card">
     <div class="hm-filters">
       <button class="hm-filter-btn" onclick="setHistoryFilter('week')">最近一周</button>
       <button class="hm-filter-btn active" onclick="setHistoryFilter('month')">最近一月</button>
@@ -1360,6 +1404,7 @@
     </div>
     <div class="hm-body" id="historyBody"></div>
     <div class="hm-pagination" id="historyPagination"></div>
+    </div>
   </div>
 </section>
 
@@ -1826,6 +1871,7 @@
       showToast('+' + amount + 'ml 💧 已记录！');
       renderAll();
       refreshRanking();
+      refreshHistoryPage();
     } catch(e) { showToast('保存失败：' + e.message); }
   }
 
@@ -1851,7 +1897,7 @@
       });
       renderAll();
       refreshRanking();
-      if (currentPage() === 'history') renderHistory();
+      refreshHistoryPage();
     } catch(e) { showToast('删除失败：' + e.message); }
   }
 
@@ -1886,6 +1932,7 @@
     editingId = null;
     renderAll();
     refreshRanking();
+    refreshHistoryPage();
   }
 
   function cancelEdit() { editingId = null; renderLog(); }
@@ -1909,6 +1956,7 @@
       showToast('今日记录已清空');
       renderAll();
       refreshRanking();
+      refreshHistoryPage();
     } catch(e) {
       closeModal();
       showToast('清空失败：' + e.message);
@@ -1934,6 +1982,7 @@
     }
     syncGoalInput();
     renderAll();
+    refreshHistoryPage();
   }
 
   function changeGoal(delta) {
@@ -2173,6 +2222,7 @@
       }
       importUserData(data).then(function() {
         renderAll();
+        refreshHistoryPage();
         showToast('数据导入成功 ✅');
       }).catch(function(err) {
         showToast('导入失败：' + err.message);
@@ -2269,7 +2319,7 @@
       updateBackfillPreview();
       renderAll();
       refreshRanking();
-      if (currentPage() === 'history') renderHistory();
+      refreshHistoryPage();
     } catch(e) { showToast('补录失败：' + e.message); }
   }
 
@@ -2332,6 +2382,11 @@
     }
     dates.sort(function(a, b) { return b.localeCompare(a); });
     return dates;
+  }
+
+  // 数据变更后刷新历史页（列表 + 日历），仅当当前停留在历史页时
+  function refreshHistoryPage() {
+    if (currentPage() === 'history') { renderHistory(); renderCalendar(); }
   }
 
   function setHistoryFilter(filter) {
@@ -2657,6 +2712,64 @@
     }).join('');
   }
 
+  // 近 7 天喝水量折线图（首页右列）
+  function renderWeekChart() {
+    var chart = document.getElementById('weekChart');
+    if (!chart) return;
+    var goal = getGoal();
+    document.getElementById('weekGoal').textContent = '目标 ' + goal + 'ml';
+
+    var days = [];
+    var maxVal = goal;
+    for (var i = 6; i >= 0; i--) {
+      var ds = dateStr(-i);
+      var total = getDayTotal(ds);
+      if (total > maxVal) maxVal = total;
+      var d = new Date(ds + 'T00:00:00');
+      var label = (d.getMonth() + 1) + '/' + d.getDate();
+      days.push({ date: ds, label: label, total: total, isToday: i === 0 });
+    }
+    maxVal = Math.max(1, maxVal);
+
+    var W = 600, H = 200, padL = 30, padR = 14, padT = 22, padB = 30;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    function px(i) { return padL + (days.length > 1 ? i * innerW / (days.length - 1) : innerW / 2); }
+    function py(v) { return padT + innerH - (v / maxVal) * innerH; }
+
+    var goalY = py(goal);
+    var svg = '<svg viewBox="0 0 600 200">' +
+      '<defs>' +
+        '<linearGradient id="weekGrad" x1="0" y1="0" x2="1" y2="0">' +
+          '<stop offset="0%" stop-color="#00BCD4"/>' +
+          '<stop offset="100%" stop-color="#2196F3"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      // 目标线
+      '<line class="wl-goal" x1="' + padL + '" y1="' + goalY + '" x2="' + (padL + innerW) + '" y2="' + goalY + '"/>' +
+      '<text x="' + (padL + innerW - 4) + '" y="' + (goalY - 6) + '" text-anchor="end" font-size="10" fill="#ff9800">目标 ' + goal + 'ml</text>';
+
+    if (days.some(function(d) { return d.total > 0; })) {
+      var pts = days.map(function(d, i) { return px(i).toFixed(1) + ',' + py(d.total).toFixed(1); }).join(' ');
+      svg += '<polyline class="wl-line" points="' + pts + '"/>';
+    } else {
+      svg += '<text x="' + (padL + innerW / 2) + '" y="' + (padT + innerH / 2) + '" text-anchor="middle" font-size="13" fill="#999">近 7 天还没有喝水记录 💧</text>';
+    }
+
+    days.forEach(function(d, i) {
+      var x = px(i), y = py(d.total);
+      var dotCls = 'wl-dot' + (d.isToday ? ' today' : '') + (d.total >= goal && goal > 0 ? ' complete' : '');
+      svg += '<circle class="' + dotCls + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (d.isToday ? 5 : 3.5) + '">' +
+        '<title>' + d.date + ' 共 ' + d.total + 'ml' + (d.total >= goal && goal > 0 ? ' · 已达标' : '') + '</title></circle>';
+      if (d.total > 0) {
+        svg += '<text x="' + x.toFixed(1) + '" y="' + (y - 9).toFixed(1) + '" text-anchor="middle" font-size="10" fill="' + (d.isToday ? '#0d47a1' : '#666') + '" font-weight="' + (d.isToday ? 700 : 400) + '">' + d.total + '</text>';
+      }
+      svg += '<text x="' + x.toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="' + (d.isToday ? '#0d47a1' : '#999') + '" font-weight="' + (d.isToday ? 700 : 400) + '">' + (d.isToday ? '今天' : d.label) + '</text>';
+    });
+
+    svg += '</svg>';
+    chart.innerHTML = svg;
+  }
+
   function getGoal() {
     return loadData()._goal || DEFAULT_GOAL;
   }
@@ -2668,7 +2781,7 @@
     renderQuickAdd();
     renderLog();
     renderTrendChart();
-    renderCalendar();
+    renderWeekChart();
   }
 
   // ---- 排行榜 ----
@@ -3139,7 +3252,7 @@
     });
     window.scrollTo(0, 0);
     if (page === 'honor') renderHonorPage();
-    if (page === 'history') renderHistory();
+    if (page === 'history') { renderHistory(); renderCalendar(); }
     if (page === 'forum') renderForumPage();
     if (page === 'profile') syncProfileInputs();
     if (page === 'settings') {
@@ -3369,7 +3482,7 @@
       }
       cancelAdminImport();
       showToast('已恢复 ' + parsed.users.length + ' 个用户的数据 ✅');
-      if (currentUser) { try { await loadUserData(currentUser); renderAll(); } catch(e2) {} }
+      if (currentUser) { try { await loadUserData(currentUser); renderAll(); refreshHistoryPage(); } catch(e2) {} }
       await showAdminPanel();
     } catch(e) {
       showToast('导入失败：' + e.message);
